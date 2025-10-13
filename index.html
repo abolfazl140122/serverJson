@@ -69,7 +69,7 @@
     <!-- بخش لودینگ -->
     <div id="loader-wrapper">
         <div class="spinner"></div>
-        <p id="loading-text">در حال بررسی اتصال به اینترنت...</p>
+        <p id="loading-text">در حال اتصال به سرور...</p>
     </div>
     
     <!-- محتوای اصلی برنامه شما اینجا قرار می‌گیرد -->
@@ -79,8 +79,8 @@
 
     <!-- ایمپورت کردن SDK های Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <!-- نیازی به Analytics در صفحه لودینگ نیست مگر اینکه بخواهید رویداد خاصی را ثبت کنید -->
 
     <script>
         // اطلاعات پیکربندی فایربیس شما
@@ -88,7 +88,7 @@
             apiKey: "AIzaSyAT8CDJoCOm8XVo62y-3CgS1Fqabdq2tjQ",
             authDomain: "serverjson-a2107.firebaseapp.com",
             projectId: "serverjson-a2107",
-            storageBucket: "serverjson-a2107.appspot.com",
+            storageBucket: "serverjson-a2107.firebasestorage.app",
             messagingSenderId: "1058313915119",
             appId: "1:1058313915119:web:4a967e4c8c401f1762a91a",
             measurementId: "G-T3Y95SVYPM"
@@ -96,66 +96,33 @@
 
         // مقداردهی اولیه فایربیس
         const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
+
+        // گرفتن ارجاع به Realtime Database برای بررسی وضعیت اتصال
         const database = firebase.database();
+        const connectedRef = database.ref(".info/connected");
 
         const loaderWrapper = document.getElementById('loader-wrapper');
         const loadingText = document.getElementById('loading-text');
 
-        // تابع بررسی وضعیت اینترنت
-        function checkInternetConnection() {
-            if (!navigator.onLine) {
-                loadingText.innerText = "اتصال به اینترنت برقرار نیست. لطفاً اتصال خود را بررسی کنید.";
-                return false;
+        // مانیتور کردن وضعیت اتصال
+        connectedRef.on("value", (snap) => {
+            if (snap.val() === true) {
+                console.log("Successfully connected to Firebase.");
+                loadingText.innerText = "اتصال موفقیت آمیز بود!";
+
+                // پس از اتصال موفق، با یک تأخیر کوتاه لودر را محو کنید
+                setTimeout(() => {
+                    loaderWrapper.classList.add('hidden');
+                    
+                    // پس از پایان انیمیشن محو شدن، می‌توانید کاربر را به صفحه اصلی هدایت کنید
+                    // یا محتوای اصلی صفحه را نمایش دهید.
+                    // window.location.href = 'main.html'; 
+                }, 1000); // 1 ثانیه تأخیر برای نمایش پیام موفقیت
+
+            } else {
+                console.log("Connecting to Firebase...");
+                loadingText.innerText = "در حال اتصال به سرور...";
             }
-            return true;
-        }
-
-        // بررسی وضعیت اتصال به سرور و احراز هویت کاربر
-        function checkStatus() {
-            if (!checkInternetConnection()) {
-                // اگر اینترنت نبود، هر چند ثانیه یکبار مجدد بررسی کن
-                setTimeout(checkStatus, 5000);
-                return;
-            }
-
-            loadingText.innerText = "در حال اتصال به سرور...";
-            const connectedRef = database.ref(".info/connected");
-
-            connectedRef.on("value", (snap) => {
-                if (snap.val() === true) {
-                    console.log("Successfully connected to Firebase.");
-                    loadingText.innerText = "اتصال موفقیت آمیز بود! در حال بررسی وضعیت کاربر...";
-
-                    // پس از اتصال موفق، وضعیت ورود کاربر را بررسی کن
-                    auth.onAuthStateChanged((user) => {
-                        setTimeout(() => {
-                            if (user) {
-                                // کاربر وارد شده است
-                                console.log("User is signed in:", user.uid);
-                                window.location.href = 'Home page.html';
-                            } else {
-                                // کاربر وارد نشده است
-                                console.log("User is signed out.");
-                                window.location.href = 'Register.html';
-                            }
-                        }, 1500); // تاخیر برای نمایش پیام موفقیت
-                    });
-
-                } else {
-                    console.log("Connecting to Firebase...");
-                    loadingText.innerText = "در حال اتصال به سرور...";
-                }
-            });
-        }
-
-        // شروع فرآیند بررسی
-        window.onload = checkStatus;
-
-        // بررسی تغییر وضعیت اینترنت
-        window.addEventListener('online', checkStatus);
-        window.addEventListener('offline', () => {
-            loadingText.innerText = "اتصال به اینترنت قطع شد.";
         });
 
     </script>
