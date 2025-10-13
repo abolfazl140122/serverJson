@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ثبت نام در Norix</title>
+    <style>
+        /* تنظیمات کلی مشابه صفحه لودینگ */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* کانتینر اصلی فرم */
+        .register-container {
+            background-color: #fff;
+            padding: 40px 50px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        /* استایل عنوان برنامه */
+        .title {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        /* استایل فیلدهای ورودی */
+        .input-group {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #444;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        /* استایل دکمه ثبت نام */
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background-color: #3498db;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .submit-btn:disabled {
+            background-color: #a9a9a9;
+            cursor: not-allowed;
+        }
+
+        /* استایل پیام‌های خطا و موفقیت */
+        #message {
+            margin-top: 20px;
+            font-weight: 500;
+            min-height: 20px; /* برای جلوگیری از پرش صفحه */
+        }
+        .message-success {
+            color: #27ae60;
+        }
+        .message-error {
+            color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="register-container">
+        <h1 class="title">Norix</h1>
+        <p class="subtitle">ثبت نام در Norix</p>
+        
+        <form id="register-form">
+            <div class="input-group">
+                <label for="username">نام کاربری</label>
+                <input type="text" id="username" placeholder="یک نام کاربری انتخاب کنید" required>
+            </div>
+            <div class="input-group">
+                <label for="displayName">نام نمایشی</label>
+                <input type="text" id="displayName" placeholder="نامی که به دیگران نمایش داده می‌شود" required>
+            </div>
+            <div class="input-group">
+                <label for="email">ایمیل</label>
+                <input type="email" id="email" placeholder="برای ورود و بازیابی رمز عبور" required>
+            </div>
+            <div class="input-group">
+                <label for="password">رمز عبور</label>
+                <input type="password" id="password" placeholder="حداقل ۶ کاراکتر" required>
+            </div>
+            <button type="submit" id="submit-button" class="submit-btn">ساخت حساب کاربری</button>
+        </form>
+
+        <p id="message"></p>
+    </div>
+
+    <!-- ایمپورت کردن SDK های Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <script>
+        // اطلاعات پیکربندی فایربیس شما
+        const firebaseConfig = {
+            apiKey: "AIzaSyAT8CDJoCOm8XVo62y-3CgS1Fqabdq2tjQ",
+            authDomain: "serverjson-a2107.firebaseapp.com",
+            projectId: "serverjson-a2107",
+            storageBucket: "serverjson-a2107.firebasestorage.app",
+            messagingSenderId: "1058313915119",
+            appId: "1:1058313915119:web:4a967e4c8c401f1762a91a",
+            measurementId: "G-T3Y95SVYPM"
+        };
+
+        // مقداردهی اولیه فایربیس
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // گرفتن عناصر DOM
+        const registerForm = document.getElementById('register-form');
+        const usernameInput = document.getElementById('username');
+        const displayNameInput = document.getElementById('displayName');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const submitButton = document.getElementById('submit-button');
+        const messageElement = document.getElementById('message');
+
+        // مدیریت فرآیند ثبت نام
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // جلوگیری از رفرش شدن صفحه
+
+            // دریافت مقادیر
+            const username = usernameInput.value;
+            const displayName = displayNameInput.value;
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            // غیرفعال کردن دکمه برای جلوگیری از کلیک‌های مکرر
+            submitButton.disabled = true;
+            submitButton.innerText = 'در حال ارسال...';
+            messageElement.textContent = '';
+            messageElement.className = '';
+
+            try {
+                // 1. ایجاد کاربر در Firebase Authentication
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                console.log('User created in Auth:', user);
+
+                // 2. ذخیره اطلاعات تکمیلی در کالکشن 'users' در Firestore
+                // نام داکیومنت را برابر با UID کاربر قرار می‌دهیم تا به راحتی پیدا شود
+                await db.collection('users').doc(user.uid).set({
+                    username: username,
+                    displayName: displayName,
+                    email: email,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp() // زمان ساخت اکانت
+                });
+
+                console.log('User data saved to Firestore.');
+
+                // نمایش پیام موفقیت
+                messageElement.textContent = 'حساب کاربری با موفقیت ساخته شد!';
+                messageElement.classList.add('message-success');
+
+                // اینجا می‌توانید کاربر را به صفحه داشبورد هدایت کنید
+                // setTimeout(() => { window.location.href = 'dashboard.html'; }, 2000);
+
+            } catch (error) {
+                // مدیریت خطاها
+                console.error('Registration Error:', error.message);
+                messageElement.classList.add('message-error');
+                if (error.code === 'auth/email-already-in-use') {
+                    messageElement.textContent = 'این ایمیل قبلاً استفاده شده است.';
+                } else if (error.code === 'auth/weak-password') {
+                    messageElement.textContent = 'رمز عبور باید حداقل ۶ کاراکتر باشد.';
+                } else {
+                    messageElement.textContent = 'خطایی رخ داد. لطفاً دوباره تلاش کنید.';
+                }
+
+                // فعال کردن مجدد دکمه
+                submitButton.disabled = false;
+                submitButton.innerText = 'ساخت حساب کاربری';
+            }
+        });
+    </script>
+
+</body>
+</html>
