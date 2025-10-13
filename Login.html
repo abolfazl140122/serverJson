@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود به حساب - Norix</title>
+    <style>
+        /* استایل‌ها کاملاً مشابه صفحه ثبت‌نام برای هماهنگی کامل است */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-container {
+            background-color: #fff;
+            padding: 40px 50px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .title {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #444;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background-color: #3498db;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .submit-btn:disabled {
+            background-color: #a9a9a9;
+            cursor: not-allowed;
+        }
+        
+        .links {
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        
+        .links a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .links a:hover {
+            text-decoration: underline;
+        }
+
+        #message {
+            margin-top: 20px;
+            font-weight: 500;
+            min-height: 20px; /* برای جلوگیری از پرش صفحه */
+            line-height: 1.6;
+        }
+        .message-success { color: #27ae60; }
+        .message-error { color: #c0392b; }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h1 class="title">Norix</h1>
+        <p class="subtitle">به حساب کاربری خود وارد شوید</p>
+        
+        <form id="login-form">
+            <div class="input-group">
+                <label for="email">ایمیل</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="input-group">
+                <label for="password">رمز عبور</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit" id="submit-button" class="submit-btn">ورود</button>
+        </form>
+
+        <p id="message"></p>
+
+        <div class="links">
+            <a href="#" id="forgot-password">رمز عبور را فراموش کرده‌ام</a>
+            <a href="./register.html">ساخت حساب جدید</a>
+        </div>
+    </div>
+
+    <!-- ایمپورت کردن SDK های Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <script>
+        // اطلاعات پیکربندی فایربیس شما (مشابه قبل)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAT8CDJoCOm8XVo62y-3CgS1Fqabdq2tjQ",
+            authDomain: "serverjson-a2107.firebaseapp.com",
+            projectId: "serverjson-a2107",
+            storageBucket: "serverjson-a2107.firebasestorage.app",
+            messagingSenderId: "1058313915119",
+            appId: "1:1058313915119:web:4a967e4c8c401f1762a91a",
+            measurementId: "G-T3Y95SVYPM"
+        };
+
+        // مقداردهی اولیه فایربیس
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // گرفتن عناصر DOM
+        const loginForm = document.getElementById('login-form');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const submitButton = document.getElementById('submit-button');
+        const messageElement = document.getElementById('message');
+        const forgotPasswordLink = document.getElementById('forgot-password');
+        let countdownInterval = null;
+
+        // مدیریت فرآیند ورود
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            setLoading(true);
+
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                showMessage('ورود موفقیت‌آمیز بود! در حال انتقال...', 'success');
+                // در اینجا کاربر را به صفحه اصلی برنامه هدایت کنید
+                // window.location.href = 'dashboard.html';
+            } catch (error) {
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                    showMessage('ایمیل یا رمز عبور وارد شده صحیح نمی‌باشد.', 'error');
+                } else {
+                    showMessage('خطایی در هنگام ورود رخ داد.', 'error');
+                }
+                setLoading(false);
+            }
+        });
+
+        // مدیریت فراموشی رمز عبور
+        forgotPasswordLink.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value;
+
+            if (!email) {
+                showMessage('برای بازیابی، ابتدا ایمیل خود را در کادر بالا وارد کنید.', 'error');
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                // 1. پیدا کردن کاربر بر اساس ایمیل در کالکشن users
+                const usersRef = db.collection("users");
+                const q = usersRef.where("email", "==", email);
+                const querySnapshot = await q.get();
+
+                if (querySnapshot.empty) {
+                    throw new Error("auth/user-not-found");
+                }
+                
+                const userDoc = querySnapshot.docs[0];
+                const userData = userDoc.data();
+                const now = new Date();
+                const cooldownUntil = userData.passwordResetCooldownUntil?.toDate();
+
+                // 2. بررسی محدودیت زمانی (cooldown)
+                if (cooldownUntil && cooldownUntil > now) {
+                    startCountdown(cooldownUntil); // نمایش تایمر
+                    setLoading(false);
+                    return;
+                }
+
+                // 3. ارسال ایمیل بازیابی
+                await auth.sendPasswordResetEmail(email);
+
+                // 4. ثبت زمان ارسال جدید برای اعمال محدودیت در آینده
+                const newCooldownDate = new Date(Date.now() + 60 * 1000); // محدودیت ۱ دقیقه‌ای
+                await db.collection('users').doc(userDoc.id).update({
+                    passwordResetCooldownUntil: newCooldownDate
+                });
+                
+                showMessage('لینک بازیابی رمز عبور به ایمیل شما ارسال شد. لطفاً پوشه Spam را نیز بررسی کنید.', 'success');
+
+            } catch (error) {
+                if (error.message === 'auth/user-not-found') {
+                    showMessage('حسابی با این ایمیل ثبت نشده است.', 'error');
+                } else {
+                    showMessage('خطایی در ارسال ایمیل بازیابی رخ داد.', 'error');
+                }
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // توابع کمکی
+        function setLoading(isLoading) {
+            submitButton.disabled = isLoading;
+            submitButton.innerText = isLoading ? 'در حال بررسی...' : 'ورود';
+            if (isLoading) {
+                // پاک کردن پیام‌های قبلی هنگام شروع یک عملیات جدید
+                messageElement.textContent = '';
+                messageElement.className = '';
+                if(countdownInterval) clearInterval(countdownInterval);
+            }
+        }
+        
+        function showMessage(message, type) {
+            messageElement.textContent = message;
+            messageElement.className = `message-${type}`;
+        }
+
+        function startCountdown(cooldownEndDate) {
+            if (countdownInterval) clearInterval(countdownInterval);
+
+            const updateTimer = () => {
+                const now = new Date();
+                const remainingSeconds = Math.round((cooldownEndDate.getTime() - now.getTime()) / 1000);
+
+                if (remainingSeconds <= 0) {
+                    clearInterval(countdownInterval);
+                    showMessage('', ''); // پاک کردن پیام تایمر
+                } else {
+                    showMessage(`برای ارسال مجدد ایمیل، لطفاً ${remainingSeconds} ثانیه صبر کنید.`, 'error');
+                }
+            };
+            
+            updateTimer(); 
+            countdownInterval = setInterval(updateTimer, 1000);
+        }
+
+    </script>
+</body>
+</html>
