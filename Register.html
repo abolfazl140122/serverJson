@@ -108,6 +108,23 @@
         .message-error {
             color: #c0392b;
         }
+        
+        /* [جدید] استایل لینک ورود */
+        .login-link {
+            margin-top: 25px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .login-link a {
+            color: #3498db;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -137,6 +154,12 @@
         </form>
 
         <p id="message"></p>
+
+        <!-- [جدید] لینک به صفحه ورود -->
+        <p class="login-link">
+            حساب کاربری دارید؟ <a href="./Login.html">وارد شوید</a>
+        </p>
+
     </div>
 
     <!-- ایمپورت کردن SDK های Firebase -->
@@ -153,7 +176,7 @@
             storageBucket: "serverjson-a2107.firebasestorage.app",
             messagingSenderId: "1058313915119",
             appId: "1:1058313915119:web:4a967e4c8c401f1762a91a",
-            measurementId: "G-T3Y95SVYPM"
+            measurementId: "G-T3Y55SVYPM"
         };
 
         // مقداردهی اولیه فایربیس
@@ -204,7 +227,7 @@
                 console.log('User data saved to Firestore.');
 
                 // نمایش پیام موفقیت
-                messageElement.textContent = 'حساب کاربری با موفقیت ساخته شد!';
+                messageElement.textContent = 'حساب کاربری با موفقیت ساخته شد! اکنون می‌توانید وارد شوید.';
                 messageElement.classList.add('message-success');
 
                 // اینجا می‌توانید کاربر را به صفحه داشبورد هدایت کنید
