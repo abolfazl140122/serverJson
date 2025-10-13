@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحه اصلی - Norix</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f7f6;
+        }
+
+        /* هدر صفحه */
+        .header {
+            background-color: #fff;
+            padding: 15px 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        #logout-btn {
+            background: none;
+            border: 1px solid #c0392b;
+            color: #c0392b;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        #logout-btn:hover {
+            background-color: #c0392b;
+            color: #fff;
+        }
+
+        /* کانتینر اصلی محتوا */
+        .main-container {
+            padding: 20px;
+            height: calc(100vh - 75px); /* ارتفاع کل صفحه منهای هدر */
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* لیست سرورها */
+        #server-list {
+            height: 100%;
+            overflow-y: auto; /* فعال شدن اسکرول در صورت زیاد بودن آیتم‌ها */
+            padding-bottom: 80px; /* فاصله از پایین برای دکمه شناور */
+        }
+
+        .server-card {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .server-name {
+            font-size: 18px;
+            font-weight: 500;
+            color: #444;
+        }
+
+        #no-servers-message {
+            text-align: center;
+            margin-top: 50px;
+            color: #777;
+            font-size: 16px;
+        }
+
+        /* دکمه شناور برای افزودن سرور */
+        #add-server-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px; /* برای زبان فارسی در سمت چپ قرار می‌گیرد */
+            width: 60px;
+            height: 60px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 36px;
+            line-height: 60px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        #add-server-btn:hover {
+            background-color: #2980b9;
+        }
+
+        /* مودال (پنجره پاپ‌آپ) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 1000;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+        .modal-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px; text-align: right;
+        }
+        .input-group label {
+            display: block; margin-bottom: 8px; font-weight: 500;
+        }
+        .input-group input {
+            width: 100%; padding: 12px; border: 1px solid #ddd;
+            border-radius: 8px; box-sizing: border-box; font-size: 16px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px; /* فاصله بین دکمه‌ها */
+            margin-top: 20px;
+        }
+        .modal-btn {
+            flex-grow: 1; padding: 12px; border: none;
+            border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;
+        }
+        #create-server-submit-btn {
+            background-color: #3498db; color: white;
+        }
+        #cancel-modal-btn {
+            background-color: #f1f1f1; color: #555;
+        }
+
+        #modal-message {
+            color: #c0392b; min-height: 20px; margin-top: 15px; font-weight: 500;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 class="header-title">سرورهای من</h1>
+        <button id="logout-btn">خروج</button>
+    </div>
+
+    <div class="main-container">
+        <div id="server-list">
+            <!-- سرورها به صورت داینامیک اینجا اضافه می‌شوند -->
+        </div>
+        <p id="no-servers-message" style="display: none;">هنوز سروری نساخته‌اید. برای شروع روی علامت + کلیک کنید.</p>
+    </div>
+
+    <button id="add-server-btn">+</button>
+
+    <!-- مودال ساخت سرور جدید -->
+    <div id="add-server-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="modal-title">ساخت سرور جدید</h2>
+            <form id="create-server-form">
+                <div class="input-group">
+                    <label for="server-name">نام سرور</label>
+                    <input type="text" id="server-name-input" required>
+                </div>
+                <div class="input-group">
+                    <label for="server-password">رمز عبور سرور</label>
+                    <input type="password" id="server-password-input" required>
+                </div>
+                <p id="modal-message"></p>
+                <div class="modal-actions">
+                    <button type="button" id="cancel-modal-btn" class="modal-btn">لغو</button>
+                    <button type="submit" id="create-server-submit-btn" class="modal-btn">ساختن</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAT8CDJoCOm8XVo62y-3CgS1Fqabdq2tjQ",
+            authDomain: "serverjson-a2107.firebaseapp.com",
+            projectId: "serverjson-a2107",
+            storageBucket: "serverjson-a2107.firebasestorage.app",
+            messagingSenderId: "1058313915119",
+            appId: "1:1058313915119:web:4a967e4c8c401f1762a91a",
+            measurementId: "G-T3Y95SVYPM"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // عناصر DOM
+        const serverList = document.getElementById('server-list');
+        const addServerBtn = document.getElementById('add-server-btn');
+        const modal = document.getElementById('add-server-modal');
+        const cancelModalBtn = document.getElementById('cancel-modal-btn');
+        const createServerForm = document.getElementById('create-server-form');
+        const serverNameInput = document.getElementById('server-name-input');
+        const serverPasswordInput = document.getElementById('server-password-input');
+        const modalMessage = document.getElementById('modal-message');
+        const noServersMessage = document.getElementById('no-servers-message');
+        const logoutBtn = document.getElementById('logout-btn');
+
+
+        // بررسی وضعیت ورود کاربر
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // کاربر وارد شده است
+                loadUserServers(user.uid);
+            } else {
+                // کاربر وارد نشده، به صفحه ورود هدایت شود
+                window.location.href = './ورود به اکانت.html'; // نام فایل ورود شما
+            }
+        });
+        
+        // تابع برای بارگذاری و نمایش سرورهای کاربر
+        async function loadUserServers(userId) {
+            serverList.innerHTML = ''; // پاک کردن لیست قبلی
+
+            try {
+                const userDocRef = db.collection('users').doc(userId);
+                const doc = await userDocRef.get();
+
+                if (doc.exists) {
+                    const userData = doc.data();
+                    const servers = userData.servers || []; // اگر آرایه سرور وجود نداشت، یک آرایه خالی در نظر بگیر
+
+                    if (servers.length === 0) {
+                        noServersMessage.style.display = 'block';
+                    } else {
+                        noServersMessage.style.display = 'none';
+                        servers.forEach(server => {
+                            const card = document.createElement('div');
+                            card.className = 'server-card';
+                            card.innerHTML = `<span class="server-name">${server.name}</span>`;
+                            serverList.appendChild(card);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading servers:", error);
+                alert("خطا در بارگذاری اطلاعات سرورها.");
+            }
+        }
+
+        // نمایش مودال
+        addServerBtn.addEventListener('click', () => {
+            modal.classList.add('visible');
+        });
+
+        // مخفی کردن مودال
+        function closeModal() {
+            modal.classList.remove('visible');
+            createServerForm.reset(); // پاک کردن فرم
+            modalMessage.textContent = '';
+        }
+        cancelModalBtn.addEventListener('click', closeModal);
+
+        // ذخیره سرور جدید
+        createServerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const serverName = serverNameInput.value.trim();
+            const serverPassword = serverPasswordInput.value.trim();
+            const user = auth.currentUser;
+
+            if (!serverName || !serverPassword) {
+                modalMessage.textContent = 'نام و رمز عبور سرور نمی‌توانند خالی باشند.';
+                return;
+            }
+            if (!user) return; // اگر به هر دلیلی کاربر لاگین نبود، کاری نکن
+
+            try {
+                const userDocRef = db.collection('users').doc(user.uid);
+                
+                // از arrayUnion برای اضافه کردن آیتم جدید به آرایه استفاده می‌کنیم
+                // این کار از بازنویسی کل آرایه جلوگیری می‌کند
+                await userDocRef.update({
+                    servers: firebase.firestore.FieldValue.arrayUnion({
+                        name: serverName,
+                        password: serverPassword // نکته: ذخیره رمز عبور به صورت متن خام امن نیست
+                    })
+                });
+
+                closeModal();
+                loadUserServers(user.uid); // بارگذاری مجدد لیست برای نمایش سرور جدید
+
+            } catch (error) {
+                 // اگر فیلد servers وجود نداشته باشد، آن را ایجاد می‌کنیم
+                if (error.code === 'not-found' || error.message.includes("No document to update")) {
+                     await db.collection('users').doc(user.uid).set({
+                        servers: [{
+                            name: serverName,
+                            password: serverPassword
+                        }]
+                    }, { merge: true });
+                     closeModal();
+                     loadUserServers(user.uid);
+                } else {
+                    console.error("Error creating server:", error);
+                    modalMessage.textContent = 'خطا در ساخت سرور. لطفاً دوباره تلاش کنید.';
+                }
+            }
+        });
+        
+        // خروج از حساب کاربری
+        logoutBtn.addEventListener('click', () => {
+            auth.signOut().then(() => {
+                console.log('User signed out');
+                // کاربر با موفقیت خارج شد و onAuthStateChanged به صورت خودکار او را به صفحه ورود هدایت می‌کند.
+            }).catch(error => {
+                console.error('Sign out error', error);
+            });
+        });
+
+    </script>
+</body>
+</html>
