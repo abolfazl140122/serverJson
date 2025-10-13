@@ -55,6 +55,12 @@
             color: #555;
             font-weight: 500;
         }
+        
+        /* کلاس برای مخفی کردن لودر با انیمیشن */
+        #loader-wrapper.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
 
     </style>
 </head>
@@ -65,12 +71,16 @@
         <div class="spinner"></div>
         <p id="loading-text">در حال اتصال به سرور...</p>
     </div>
+    
+    <!-- محتوای اصلی برنامه شما اینجا قرار می‌گیرد -->
+    <!-- برای مثال: -->
+    <!-- <h1>به برنامه ساخت سرور JSON خوش آمدید!</h1> -->
+
 
     <!-- ایمپورت کردن SDK های Firebase -->
-    <!-- هر دو SDK برای بررسی اتصال و وضعیت ورود کاربر لازم است -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <!-- نیازی به Analytics در صفحه لودینگ نیست مگر اینکه بخواهید رویداد خاصی را ثبت کنید -->
 
     <script>
         // اطلاعات پیکربندی فایربیس شما
@@ -86,40 +96,32 @@
 
         // مقداردهی اولیه فایربیس
         const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        const auth = firebase.auth(); // مقداردهی اولیه سرویس احراز هویت
 
+        // گرفتن ارجاع به Realtime Database برای بررسی وضعیت اتصال
+        const database = firebase.database();
+        const connectedRef = database.ref(".info/connected");
+
+        const loaderWrapper = document.getElementById('loader-wrapper');
         const loadingText = document.getElementById('loading-text');
 
-        // مرحله ۱: مانیتور کردن وضعیت اتصال به سرورهای Firebase
-        database.ref(".info/connected").on("value", (snap) => {
+        // مانیتور کردن وضعیت اتصال
+        connectedRef.on("value", (snap) => {
             if (snap.val() === true) {
-                // اتصال موفقیت‌آمیز است
                 console.log("Successfully connected to Firebase.");
-                loadingText.innerText = "اتصال موفق! در حال بررسی اطلاعات حساب...";
+                loadingText.innerText = "اتصال موفقیت آمیز بود!";
 
-                // مرحله ۲: بررسی وضعیت ورود کاربر
-                // onAuthStateChanged یک شنونده است که بلافاصله وضعیت را بررسی می‌کند
-                // و منتظر تغییرات بعدی نیز می‌ماند.
-                const unsubscribe = auth.onAuthStateChanged(user => {
-                    // پس از اولین بررسی، دیگر نیازی به این شنونده نداریم
-                    unsubscribe(); 
+                // پس از اتصال موفق، با یک تأخیر کوتاه لودر را محو کنید
+                setTimeout(() => {
+                    loaderWrapper.classList.add('hidden');
                     
-                    if (user) {
-                        // کاربر وارد شده است
-                        console.log("User is signed in. Redirecting to home page...");
-                        window.location.href = 'Home page.html'; // هدایت به صفحه اصلی
-                    } else {
-                        // کاربر وارد نشده است
-                        console.log("No user is signed in. Redirecting to registration page...");
-                        window.location.href = 'Register.html'; // هدایت به صفحه ثبت نام
-                    }
-                });
+                    // پس از پایان انیمیشن محو شدن، می‌توانید کاربر را به صفحه اصلی هدایت کنید
+                    // یا محتوای اصلی صفحه را نمایش دهید.
+                    // window.location.href = 'main.html'; 
+                }, 1000); // 1 ثانیه تأخیر برای نمایش پیام موفقیت
 
             } else {
-                // در حال تلاش برای اتصال
                 console.log("Connecting to Firebase...");
-                loadingText.innerText = "در حال اتصال به سرور... (لطفاً از اتصال اینترنت خود مطمئن شوید)";
+                loadingText.innerText = "در حال اتصال به سرور...";
             }
         });
 
