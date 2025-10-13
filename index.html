@@ -29,77 +29,31 @@
             align-items: center;
             flex-direction: column;
             z-index: 9999;
-            transition: opacity 0.75s ease, visibility 0.75s ease;
+            transition: opacity 0.5s ease;
         }
 
-        /* انیمیشن لودر جدید */
-        .loader {
-            width: 60px;
-            height: 60px;
+        /* انیمیشن اسپینر */
+        .spinner {
+            border: 6px solid #e0e0e0; /* رنگ خاکستری روشن برای حلقه */
+            border-top: 6px solid #3498db; /* رنگ آبی برای بخش متحرک */
             border-radius: 50%;
-            display: inline-block;
-            position: relative;
-            border: 3px solid;
-            border-color: #DDD #DDD transparent transparent;
-            box-sizing: border-box;
-            animation: rotation 1s linear infinite;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
         }
-        .loader::after,
-        .loader::before {
-            content: '';  
-            box-sizing: border-box;
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            margin: auto;
-            border: 3px solid;
-            border-color: transparent transparent #3498db #3498db;
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            box-sizing: border-box;
-            animation: rotationBack 0.5s linear infinite;
-            transform-origin: center center;
-        }
-        .loader::before {
-            width: 44px;
-            height: 44px;
-            border-color: #DDD #DDD transparent transparent;
-            animation: rotation 1.5s linear infinite;
-        }
-            
-        @keyframes rotation {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        } 
-        @keyframes rotationBack {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(-360deg);
-            }
+
+        /* انیمیشن چرخش */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* استایل متن لودینگ */
         #loading-text {
-            margin-top: 25px;
-            font-size: 18px;
-            color: #333;
+            margin-top: 20px;
+            font-size: 16px;
+            color: #555;
             font-weight: 500;
-            transition: opacity 0.5s ease;
-        }
-        
-        /* کلاس برای مخفی کردن لودر با انیمیشن */
-        #loader-wrapper.hidden {
-            opacity: 0;
-            visibility: hidden;
         }
 
     </style>
@@ -108,18 +62,15 @@
 
     <!-- بخش لودینگ -->
     <div id="loader-wrapper">
-        <div class="loader"></div>
-        <p id="loading-text">در حال برقراری ارتباط...</p>
+        <div class="spinner"></div>
+        <p id="loading-text">در حال اتصال به سرور...</p>
     </div>
-    
-    <!-- محتوای اصلی برنامه شما اینجا قرار می‌گیرد -->
-    <!-- برای مثال: -->
-    <!-- <h1>به برنامه ساخت سرور JSON خوش آمدید!</h1> -->
-
 
     <!-- ایمپورت کردن SDK های Firebase -->
+    <!-- هر دو SDK برای بررسی اتصال و وضعیت ورود کاربر لازم است -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 
     <script>
         // اطلاعات پیکربندی فایربیس شما
@@ -135,49 +86,40 @@
 
         // مقداردهی اولیه فایربیس
         const app = firebase.initializeApp(firebaseConfig);
-
-        // گرفتن ارجاع به Realtime Database برای بررسی وضعیت اتصال
         const database = firebase.database();
-        const connectedRef = database.ref(".info/connected");
+        const auth = firebase.auth(); // مقداردهی اولیه سرویس احراز هویت
 
-        const loaderWrapper = document.getElementById('loader-wrapper');
         const loadingText = document.getElementById('loading-text');
 
-        // آرایه‌ای از پیام‌ها برای شبیه‌سازی مراحل اتصال
-        const connectionSteps = [
-            "در حال تأیید اعتبار...",
-            "در حال آماده‌سازی...",
-            "اتصال موفقیت آمیز بود!"
-        ];
-        let currentStep = 0;
-
-        // مانیتور کردن وضعیت اتصال
-        connectedRef.on("value", (snap) => {
+        // مرحله ۱: مانیتور کردن وضعیت اتصال به سرورهای Firebase
+        database.ref(".info/connected").on("value", (snap) => {
             if (snap.val() === true) {
+                // اتصال موفقیت‌آمیز است
                 console.log("Successfully connected to Firebase.");
+                loadingText.innerText = "اتصال موفق! در حال بررسی اطلاعات حساب...";
 
-                // شروع نمایش مراحل اتصال شبیه‌سازی شده
-                const interval = setInterval(() => {
-                    if (currentStep < connectionSteps.length) {
-                        loadingText.innerText = connectionSteps[currentStep];
-                        currentStep++;
+                // مرحله ۲: بررسی وضعیت ورود کاربر
+                // onAuthStateChanged یک شنونده است که بلافاصله وضعیت را بررسی می‌کند
+                // و منتظر تغییرات بعدی نیز می‌ماند.
+                const unsubscribe = auth.onAuthStateChanged(user => {
+                    // پس از اولین بررسی، دیگر نیازی به این شنونده نداریم
+                    unsubscribe(); 
+                    
+                    if (user) {
+                        // کاربر وارد شده است
+                        console.log("User is signed in. Redirecting to home page...");
+                        window.location.href = 'Home page.html'; // هدایت به صفحه اصلی
                     } else {
-                        clearInterval(interval);
-                        // پس از اتمام مراحل، با یک تأخیر کوتاه لودر را محو کنید
-                        setTimeout(() => {
-                            loaderWrapper.classList.add('hidden');
-                            
-                            // پس از پایان انیمیشن محو شدن، می‌توانید کاربر را به صفحه اصلی هدایت کنید
-                            // یا محتوای اصلی صفحه را نمایش دهید.
-                            // window.location.href = 'main.html'; 
-                        }, 700); // تأخیر برای نمایش پیام موفقیت
+                        // کاربر وارد نشده است
+                        console.log("No user is signed in. Redirecting to registration page...");
+                        window.location.href = 'Register.html'; // هدایت به صفحه ثبت نام
                     }
-                }, 1200); // هر 1.2 ثانیه یک پیام جدید نمایش داده می‌شود
+                });
 
             } else {
+                // در حال تلاش برای اتصال
                 console.log("Connecting to Firebase...");
-                loadingText.innerText = "در حال اتصال به سرور...";
-                currentStep = 0; // ریست کردن مراحل در صورت قطع اتصال
+                loadingText.innerText = "در حال اتصال به سرور... (لطفاً از اتصال اینترنت خود مطمئن شوید)";
             }
         });
 
