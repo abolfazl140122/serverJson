@@ -19,6 +19,20 @@
             background-color: var(--light-gray);
         }
 
+        /* استایل برای وضعیت بارگذاری اولیه */
+        #initial-loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-size: 18px;
+            color: var(--dark-text);
+        }
+
+        .app-content {
+            display: none; /* در ابتدا محتوای اصلی مخفی است */
+        }
+
         .header {
             background-color: #fff; padding: 15px 20px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex;
@@ -98,17 +112,23 @@
 </head>
 <body>
 
-    <div class="header">
-        <h1 class="header-title">سرورهای من</h1>
-        <button id="logout-btn">خروج</button>
+    <div id="initial-loading">
+        <p>در حال بارگذاری اطلاعات کاربری...</p>
     </div>
 
-    <div class="main-container">
-        <div id="server-list"></div>
-        <p id="no-servers-message" style="display: none;">هنوز سروری نساخته‌اید. برای شروع روی علامت + کلیک کنید.</p>
-    </div>
+    <div class="app-content">
+        <div class="header">
+            <h1 class="header-title">سرورهای من</h1>
+            <button id="logout-btn">خروج</button>
+        </div>
 
-    <button id="add-server-btn">+</button>
+        <div class="main-container">
+            <div id="server-list"></div>
+            <p id="no-servers-message" style="display: none;">هنوز سروری نساخته‌اید. برای شروع روی علامت + کلیک کنید.</p>
+        </div>
+
+        <button id="add-server-btn">+</button>
+    </div>
 
     <!-- مودال داینامیک برای ساخت و ویرایش سرور -->
     <div id="server-modal" class="modal-overlay">
@@ -126,7 +146,6 @@
                         <input type="password" id="server-password-input">
                     </div>
 
-                    <!-- بخش ویرایشگر JSON و لینک (فقط در حالت ویرایش نمایش داده می‌شود) -->
                     <div id="edit-fields" style="display: none;">
                         <div class="input-group">
                             <label for="json-content-input">محتوای JSON</label>
@@ -155,7 +174,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script> <!-- SDK پایگاه داده Realtime -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <script>
         const firebaseConfig = {
@@ -166,15 +185,18 @@
             messagingSenderId: "1058313915119",
             appId: "1:1058313915119:web:4a967e4c8c401f1762a91a",
             measurementId: "G-T3Y95SVYPM",
-            databaseURL: "https://serverjson-a2107-default-rtdb.firebaseio.com" // آدرس پایگاه داده Realtime
+            databaseURL: "https://serverjson-a2107-default-rtdb.firebaseio.com"
         };
 
+        // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const rtdb = firebase.database(); // مقداردهی اولیه Realtime Database
+        const rtdb = firebase.database();
 
-        // عناصر DOM
+        // DOM Elements
+        const initialLoading = document.getElementById('initial-loading');
+        const appContent = document.querySelector('.app-content');
         const serverList = document.getElementById('server-list');
         const addServerBtn = document.getElementById('add-server-btn');
         const modal = document.getElementById('server-modal');
@@ -196,28 +218,34 @@
         let currentUser;
         let userServers = [];
 
-        // بررسی وضعیت ورود کاربر
+        // --- Authentication State Observer ---
         auth.onAuthStateChanged(user => {
             if (user) {
+                // User is signed in.
                 currentUser = user;
+                initialLoading.style.display = 'none';
+                appContent.style.display = 'block';
                 loadUserServers();
             } else {
+                // User is signed out. Redirect to login page.
                 window.location.href = './ورود به اکانت.html';
             }
         });
         
-        // بارگذاری و نمایش سرورهای کاربر
+        // --- Functions ---
+
         async function loadUserServers() {
             serverList.innerHTML = '';
             try {
                 const userDocRef = db.collection('users').doc(currentUser.uid);
                 const doc = await userDocRef.get();
-                if (doc.exists) {
-                    userServers = doc.data().servers || [];
+                if (doc.exists && doc.data().servers) {
+                    userServers = doc.data().servers;
                     noServersMessage.style.display = userServers.length === 0 ? 'block' : 'none';
                     userServers.forEach(server => displayServerCard(server));
                 } else {
                      noServersMessage.style.display = 'block';
+                     userServers = []; // Ensure server list is empty
                 }
             } catch (error) {
                 console.error("Error loading servers:", error);
@@ -233,28 +261,27 @@
             serverList.appendChild(card);
         }
 
-        // باز کردن مودال برای ساخت سرور جدید
         function openModalForCreate() {
             serverForm.reset();
             serverIdInput.value = '';
             modalTitle.textContent = 'ساخت سرور جدید';
             submitBtn.textContent = 'ساختن';
             serverPasswordInput.required = true;
+            serverPasswordInput.parentElement.style.display = 'block';
             editFields.style.display = 'none';
             deleteBtn.style.display = 'none';
             modal.classList.add('visible');
         }
 
-        // باز کردن مودال برای ویرایش سرور موجود
         function openModalForEdit(server) {
             serverForm.reset();
             serverIdInput.value = server.id;
             serverNameInput.value = server.name;
-            serverPasswordInput.required = false; // رمز عبور در حالت ویرایش اجباری نیست
+            serverPasswordInput.required = false;
+            serverPasswordInput.parentElement.style.display = 'none'; // رمز عبور در ویرایش لازم نیست
             modalTitle.textContent = 'ویرایش سرور';
             submitBtn.textContent = 'ذخیره تغییرات';
             
-            // نمایش محتوای JSON با فرمت زیبا
             jsonContentInput.value = JSON.stringify(server.content || {}, null, 2);
             serverLinkInput.value = `${firebaseConfig.databaseURL}/servers/${server.id}.json`;
             
@@ -263,23 +290,24 @@
             modal.classList.add('visible');
         }
 
-        // بستن مودال
         function closeModal() {
             modal.classList.remove('visible');
             modalMessage.textContent = '';
         }
 
-        // مدیریت ارسال فرم (ساخت یا ویرایش)
         async function handleFormSubmit() {
+            submitBtn.disabled = true; // جلوگیری از کلیک‌های مکرر
+            modalMessage.textContent = '';
+
             const serverId = serverIdInput.value;
             if (serverId) {
                 await updateServer(serverId);
             } else {
                 await createNewServer();
             }
+            submitBtn.disabled = false;
         }
         
-        // ساخت سرور جدید
         async function createNewServer() {
             const serverName = serverNameInput.value.trim();
             const serverPassword = serverPasswordInput.value.trim();
@@ -290,10 +318,10 @@
             }
 
             const newServer = {
-                id: Date.now().toString(), // شناسه منحصر به فرد بر اساس زمان
+                id: Date.now().toString(),
                 name: serverName,
-                password: serverPassword,
-                content: {} // محتوای JSON اولیه خالی
+                password: serverPassword, // نکته: ذخیره رمز عبور به صورت متن ساده امن نیست.
+                content: {}
             };
             
             try {
@@ -303,19 +331,22 @@
                 }, { merge: true });
                 
                 closeModal();
-                loadUserServers();
+                await loadUserServers(); // بازخوانی سرورها
             } catch (error) {
                 console.error("Error creating server:", error);
                 modalMessage.textContent = 'خطا در ساخت سرور.';
             }
         }
 
-        // به‌روزرسانی سرور موجود
         async function updateServer(serverId) {
             const serverName = serverNameInput.value.trim();
             let newJsonContent;
 
-            // اعتبارسنجی محتوای JSON
+            if (!serverName) {
+                modalMessage.textContent = 'نام سرور نمی‌تواند خالی باشد.';
+                return;
+            }
+
             try {
                 newJsonContent = JSON.parse(jsonContentInput.value);
             } catch (e) {
@@ -323,30 +354,26 @@
                 return;
             }
             
-            const updatedServers = userServers.map(server => {
-                if (server.id === serverId) {
-                    return { ...server, name: serverName, content: newJsonContent };
-                }
-                return server;
-            });
+            const currentServer = userServers.find(s => s.id === serverId);
+            if (!currentServer) return;
+
+            const updatedServer = { ...currentServer, name: serverName, content: newJsonContent };
+            const updatedServersList = userServers.map(s => s.id === serverId ? updatedServer : s);
 
             try {
-                // به‌روزرسانی در Firestore
                 const userDocRef = db.collection('users').doc(currentUser.uid);
-                await userDocRef.update({ servers: updatedServers });
+                await userDocRef.update({ servers: updatedServersList });
 
-                // به‌روزرسانی در Realtime Database
                 await rtdb.ref('servers/' + serverId).set(newJsonContent);
                 
                 closeModal();
-                loadUserServers();
+                await loadUserServers();
             } catch (error) {
                 console.error("Error updating server:", error);
                 modalMessage.textContent = 'خطا در ذخیره تغییرات.';
             }
         }
 
-        // حذف سرور
         async function deleteServer() {
             const serverId = serverIdInput.value;
             if (!confirm(`آیا از حذف سرور "${serverNameInput.value}" مطمئن هستید؟`)) return;
@@ -354,27 +381,28 @@
             const updatedServers = userServers.filter(server => server.id !== serverId);
 
             try {
-                // حذف از Firestore
                 const userDocRef = db.collection('users').doc(currentUser.uid);
                 await userDocRef.update({ servers: updatedServers });
-
-                // حذف از Realtime Database
                 await rtdb.ref('servers/' + serverId).remove();
 
                 closeModal();
-                loadUserServers();
+                await loadUserServers();
             } catch (error) {
                 console.error("Error deleting server:", error);
                 alert('خطا در حذف سرور.');
             }
         }
 
-        // رویدادها
+        // --- Event Listeners ---
         addServerBtn.addEventListener('click', openModalForCreate);
         cancelBtn.addEventListener('click', closeModal);
         submitBtn.addEventListener('click', handleFormSubmit);
         deleteBtn.addEventListener('click', deleteServer);
-        logoutBtn.addEventListener('click', () => auth.signOut());
+        logoutBtn.addEventListener('click', () => {
+            auth.signOut().catch(error => {
+                console.error("Logout Error:", error);
+            });
+        });
 
     </script>
 </body>
