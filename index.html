@@ -1,1 +1,131 @@
-.
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>در حال بارگذاری...</title>
+    <style>
+        /* تنظیمات کلی صفحه */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f7f6;
+        }
+
+        /* پوشش تمام صفحه برای لودر */
+        #loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        /* انیمیشن اسپینر */
+        .spinner {
+            border: 6px solid #e0e0e0; /* رنگ خاکستری روشن برای حلقه */
+            border-top: 6px solid #3498db; /* رنگ آبی برای بخش متحرک */
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* انیمیشن چرخش */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* استایل متن لودینگ */
+        #loading-text {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        /* کلاس برای مخفی کردن لودر با انیمیشن */
+        #loader-wrapper.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- بخش لودینگ -->
+    <div id="loader-wrapper">
+        <div class="spinner"></div>
+        <p id="loading-text">در حال اتصال به سرور...</p>
+    </div>
+    
+    <!-- محتوای اصلی برنامه شما اینجا قرار می‌گیرد -->
+    <!-- برای مثال: -->
+    <!-- <h1>به برنامه ساخت سرور JSON خوش آمدید!</h1> -->
+
+
+    <!-- ایمپورت کردن SDK های Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <!-- نیازی به Analytics در صفحه لودینگ نیست مگر اینکه بخواهید رویداد خاصی را ثبت کنید -->
+
+    <script>
+        // اطلاعات پیکربندی فایربیس شما
+        const firebaseConfig = {
+            apiKey: "AIzaSyAT8CDJoCOm8XVo62y-3CgS1Fqabdq2tjQ",
+            authDomain: "serverjson-a2107.firebaseapp.com",
+            projectId: "serverjson-a2107",
+            storageBucket: "serverjson-a2107.firebasestorage.app",
+            messagingSenderId: "1058313915119",
+            appId: "1:1058313915119:web:4a967e4c8c401f1762a91a",
+            measurementId: "G-T3Y95SVYPM"
+        };
+
+        // مقداردهی اولیه فایربیس
+        const app = firebase.initializeApp(firebaseConfig);
+
+        // گرفتن ارجاع به Realtime Database برای بررسی وضعیت اتصال
+        const database = firebase.database();
+        const connectedRef = database.ref(".info/connected");
+
+        const loaderWrapper = document.getElementById('loader-wrapper');
+        const loadingText = document.getElementById('loading-text');
+
+        // مانیتور کردن وضعیت اتصال
+        connectedRef.on("value", (snap) => {
+            if (snap.val() === true) {
+                console.log("Successfully connected to Firebase.");
+                loadingText.innerText = "اتصال موفقیت آمیز بود!";
+
+                // پس از اتصال موفق، با یک تأخیر کوتاه لودر را محو کنید
+                setTimeout(() => {
+                    loaderWrapper.classList.add('hidden');
+                    
+                    // پس از پایان انیمیشن محو شدن، می‌توانید کاربر را به صفحه اصلی هدایت کنید
+                    // یا محتوای اصلی صفحه را نمایش دهید.
+                    // window.location.href = 'main.html'; 
+                }, 1000); // 1 ثانیه تأخیر برای نمایش پیام موفقیت
+
+            } else {
+                console.log("Connecting to Firebase...");
+                loadingText.innerText = "در حال اتصال به سرور...";
+            }
+        });
+
+    </script>
+
+</body>
+</html>
