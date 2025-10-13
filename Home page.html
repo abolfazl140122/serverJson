@@ -110,7 +110,6 @@
 
     <button id="add-server-btn">+</button>
 
-    <!-- مودال داینامیک برای ساخت و ویرایش سرور -->
     <div id="server-modal" class="modal-overlay">
         <div class="modal-content">
             <h2 id="modal-title" class="modal-title">ساخت سرور جدید</h2>
@@ -193,32 +192,31 @@
 
         let currentUser;
         let userServers = [];
-        let unsubscribe; // برای نگهداری تابع لغو listener
+        let unsubscribe;
 
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
-                listenForServerChanges(); // <<-- تغییر کلیدی: به جای load، از listen استفاده می‌کنیم
+                listenForServerChanges();
             } else {
-                if (unsubscribe) unsubscribe(); // لغو listener هنگام خروج کاربر
+                if (unsubscribe) unsubscribe();
                 window.location.href = './ورود به اکانت.html';
             }
         });
         
-        // گوش دادن به تغییرات سرورها به صورت زنده
         function listenForServerChanges() {
-            if (unsubscribe) unsubscribe(); // لغو listener قبلی اگر وجود داشت
+            if (unsubscribe) unsubscribe();
 
             const userDocRef = db.collection('users').doc(currentUser.uid);
             unsubscribe = userDocRef.onSnapshot(doc => {
-                serverList.innerHTML = ''; // پاک کردن لیست فعلی برای بازрисов
-                if (doc.exists) {
-                    userServers = doc.data().servers || [];
+                serverList.innerHTML = '';
+                if (doc.exists && doc.data().servers) {
+                    userServers = doc.data().servers;
                     noServersMessage.style.display = userServers.length === 0 ? 'block' : 'none';
                     userServers.forEach(server => displayServerCard(server));
                 } else {
                      noServersMessage.style.display = 'block';
-                     userServers = []; // اطمینان از خالی بودن آرایه
+                     userServers = [];
                 }
             }, error => {
                 console.error("Error listening for server changes:", error);
@@ -254,7 +252,6 @@
             modalTitle.textContent = 'ویرایش سرور';
             submitBtn.textContent = 'ذخیره تغییرات';
             
-            // نمایش محتوای JSON. اگر محتوا وجود نداشت، یک آبجکت خالی نمایش داده می‌شود
             jsonContentInput.value = JSON.stringify(server.content || {}, null, 2);
             serverLinkInput.value = `${firebaseConfig.databaseURL}/servers/${server.id}.json`;
             
@@ -269,15 +266,27 @@
             modalMessage.textContent = '';
         }
 
+        // <<-- **تغییر کلیدی اینجا اتفاق افتاده است** -->>
         async function handleFormSubmit() {
-            submitBtn.disabled = true; // جلوگیری از کلیک‌های متعدد
-            const serverId = serverIdInput.value;
-            if (serverId) {
-                await updateServer(serverId);
-            } else {
-                await createNewServer();
+            submitBtn.disabled = true;
+            modalMessage.textContent = ''; // پاک کردن پیغام‌های قبلی
+
+            try {
+                const serverId = serverIdInput.value;
+                if (serverId) {
+                    await updateServer(serverId);
+                } else {
+                    await createNewServer();
+                }
+            } catch (error) {
+                // توابع داخلی خودشان پیغام خطا را تنظیم می‌کنند
+                // این بخش برای خطاهای پیش‌بینی نشده است
+                console.error("Error during form submission:", error);
+                modalMessage.textContent = 'یک خطای غیرمنتظره رخ داد. لطفا کنسول را بررسی کنید.';
+            } finally {
+                // این بلاک همیشه اجرا می‌شود، چه موفقیت‌آمیز باشد چه خطا رخ دهد
+                submitBtn.disabled = false;
             }
-            submitBtn.disabled = false;
         }
         
         async function createNewServer() {
@@ -286,32 +295,31 @@
 
             if (!serverName || !serverPassword) {
                 modalMessage.textContent = 'نام و رمز عبور سرور الزامی است.';
-                return;
+                return; // اینجا متوقف می‌شود اما finally در handleFormSubmit دکمه را فعال می‌کند
             }
 
             const newServerId = Date.now().toString();
             const newServer = {
                 id: newServerId,
                 name: serverName,
-                password: serverPassword, // نکته: ذخیره رمز عبور به این شکل امن نیست. در یک پروژه واقعی باید از روش‌های هش کردن استفاده شود.
-                content: {} // محتوای JSON اولیه خالی
+                password: serverPassword,
+                content: {}
             };
             
             try {
-                // **مرحله ۱: ایجاد رکورد در Realtime Database**
                 await rtdb.ref('servers/' + newServerId).set(newServer.content);
 
-                // **مرحله ۲: افزودن سرور به لیست کاربر در Firestore**
                 const userDocRef = db.collection('users').doc(currentUser.uid);
                 await userDocRef.set({
                     servers: firebase.firestore.FieldValue.arrayUnion(newServer)
                 }, { merge: true });
                 
                 closeModal();
-                // نیازی به فراخوانی تابع load نیست، onSnapshot به صورت خودکار صفحه را به‌روز می‌کند
             } catch (error) {
                 console.error("Error creating server:", error);
-                modalMessage.textContent = 'خطا در ساخت سرور.';
+                modalMessage.textContent = 'خطا در ساخت سرور. (ممکن است مشکل از قوانین امنیتی باشد)';
+                // خطا را به بالا پرتاب می‌کنیم تا catch در handleFormSubmit آن را بگیرد
+                throw error;
             }
         }
 
@@ -331,25 +339,21 @@
                 return;
             }
             
-            const updatedServers = userServers.map(server => {
-                if (server.id === serverId) {
-                    return { ...server, name: serverName, content: newJsonContent };
-                }
-                return server;
-            });
+            const serverToUpdate = userServers.find(s => s.id === serverId);
+            if (!serverToUpdate) return; // سرور پیدا نشد
+
+            const updatedServer = { ...serverToUpdate, name: serverName, content: newJsonContent };
+            const updatedServers = userServers.map(s => s.id === serverId ? updatedServer : s);
 
             try {
-                // به‌روزرسانی در Realtime Database
                 await rtdb.ref('servers/' + serverId).set(newJsonContent);
-                
-                // به‌روزرسانی در Firestore
                 const userDocRef = db.collection('users').doc(currentUser.uid);
                 await userDocRef.update({ servers: updatedServers });
-                
                 closeModal();
             } catch (error) {
                 console.error("Error updating server:", error);
                 modalMessage.textContent = 'خطا در ذخیره تغییرات.';
+                throw error;
             }
         }
 
@@ -360,13 +364,9 @@
             const updatedServers = userServers.filter(server => server.id !== serverId);
 
             try {
-                // حذف از Realtime Database
                 await rtdb.ref('servers/' + serverId).remove();
-                
-                // حذف از Firestore
                 const userDocRef = db.collection('users').doc(currentUser.uid);
                 await userDocRef.update({ servers: updatedServers });
-
                 closeModal();
             } catch (error) {
                 console.error("Error deleting server:", error);
@@ -374,13 +374,12 @@
             }
         }
 
-        // رویدادها
         addServerBtn.addEventListener('click', openModalForCreate);
         cancelBtn.addEventListener('click', closeModal);
         submitBtn.addEventListener('click', handleFormSubmit);
         deleteBtn.addEventListener('click', deleteServer);
         logoutBtn.addEventListener('click', () => {
-            if (unsubscribe) unsubscribe(); // لغو listener قبل از خروج
+            if (unsubscribe) unsubscribe();
             auth.signOut();
         });
 
