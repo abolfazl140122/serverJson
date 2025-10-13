@@ -29,7 +29,6 @@
             align-items: center;
             flex-direction: column;
             z-index: 9999;
-            transition: opacity 0.5s ease;
         }
 
         /* انیمیشن اسپینر */
@@ -55,13 +54,6 @@
             color: #555;
             font-weight: 500;
         }
-        
-        /* کلاس برای مخفی کردن لودر با انیمیشن */
-        #loader-wrapper.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-
     </style>
 </head>
 <body>
@@ -69,18 +61,13 @@
     <!-- بخش لودینگ -->
     <div id="loader-wrapper">
         <div class="spinner"></div>
-        <p id="loading-text">در حال اتصال به سرور...</p>
+        <p id="loading-text">در حال بررسی اطلاعات کاربری...</p>
     </div>
-    
-    <!-- محتوای اصلی برنامه شما اینجا قرار می‌گیرد -->
-    <!-- برای مثال: -->
-    <!-- <h1>به برنامه ساخت سرور JSON خوش آمدید!</h1> -->
-
 
     <!-- ایمپورت کردن SDK های Firebase -->
+    <!-- افزودن کتابخانه احراز هویت (Authentication) ضروری است -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <!-- نیازی به Analytics در صفحه لودینگ نیست مگر اینکه بخواهید رویداد خاصی را ثبت کنید -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 
     <script>
         // اطلاعات پیکربندی فایربیس شما
@@ -96,33 +83,23 @@
 
         // مقداردهی اولیه فایربیس
         const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
 
-        // گرفتن ارجاع به Realtime Database برای بررسی وضعیت اتصال
-        const database = firebase.database();
-        const connectedRef = database.ref(".info/connected");
-
-        const loaderWrapper = document.getElementById('loader-wrapper');
-        const loadingText = document.getElementById('loading-text');
-
-        // مانیتور کردن وضعیت اتصال
-        connectedRef.on("value", (snap) => {
-            if (snap.val() === true) {
-                console.log("Successfully connected to Firebase.");
-                loadingText.innerText = "اتصال موفقیت آمیز بود!";
-
-                // پس از اتصال موفق، با یک تأخیر کوتاه لودر را محو کنید
-                setTimeout(() => {
-                    loaderWrapper.classList.add('hidden');
-                    
-                    // پس از پایان انیمیشن محو شدن، می‌توانید کاربر را به صفحه اصلی هدایت کنید
-                    // یا محتوای اصلی صفحه را نمایش دهید.
-                    // window.location.href = 'main.html'; 
-                }, 1000); // 1 ثانیه تأخیر برای نمایش پیام موفقیت
-
-            } else {
-                console.log("Connecting to Firebase...");
-                loadingText.innerText = "در حال اتصال به سرور...";
-            }
+        // بررسی وضعیت ورود کاربر
+        // این تابع به محض آماده شدن سرویس احراز هویت اجرا می‌شود
+        auth.onAuthStateChanged((user) => {
+            // یک تأخیر کوتاه برای نمایش بهتر لودر و جلوگیری از پرش ناگهانی صفحه
+            setTimeout(() => {
+                if (user) {
+                    // کاربر وارد شده است
+                    console.log("کاربر شناسایی شد. در حال انتقال به صفحه اصلی...");
+                    window.location.href = 'Home page.html'; // هدایت به صفحه اصلی
+                } else {
+                    // کاربر وارد نشده است
+                    console.log("کاربری شناسایی نشد. در حال انتقال به صفحه ثبت‌نام...");
+                    window.location.href = 'Register.html'; // هدایت به صفحه ثبت‌نام
+                }
+            }, 1000); // 1 ثانیه تأخیر
         });
 
     </script>
