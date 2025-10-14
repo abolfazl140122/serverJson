@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نمایش سرور HTML</title>
+</head>
+<body>
+  <div id="content">در حال بارگذاری...</div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAT8CDJoCOm8XVo62y-3CgS1Fqabdq2tjQ",
+      authDomain: "serverjson-a2107.firebaseapp.com",
+      projectId: "serverjson-a2107",
+      databaseURL: "https://serverjson-a2107-default-rtdb.firebaseio.com"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const db = firebase.database();
+
+    if (id) {
+      db.ref("servers/" + id).once("value").then(snapshot => {
+        const data = snapshot.val();
+        if (data && data.type === "html") {
+          document.body.innerHTML = data.content;
+        } else {
+          document.getElementById("content").innerText = "سرور HTML یافت نشد.";
+        }
+      }).catch(err => {
+        document.getElementById("content").innerText = "خطا در بارگذاری محتوا.";
+        console.error(err);
+      });
+    } else {
+      document.getElementById("content").innerText = "شناسه سرور مشخص نشده.";
+    }
+  </script>
+</body>
+</html>
