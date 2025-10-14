@@ -428,7 +428,9 @@
             modalTitle.textContent = `ویرایش سرور: ${server.name}`;
             submitBtn.textContent = 'ذخیره تغییرات';
             
-            jsonContentInput.value = JSON.stringify(server.content || {}, null, 2);
+            // پیدا کردن اطلاعات کامل سرور از کش برای نمایش محتوای JSON
+            const currentServerState = userServers.find(s => s.id === server.id);
+            jsonContentInput.value = JSON.stringify(currentServerState.content || {}, null, 2);
             serverLinkInput.value = `${firebaseConfig.databaseURL}/servers/${server.id}.json`;
             
             editFields.style.display = 'block';
@@ -473,18 +475,18 @@
             const newServer = {
                 id: Date.now().toString(),
                 name: serverName,
-                password: serverPassword, // نکته: ذخیره رمز عبور به صورت متن ساده امن نیست.
-                content: { initial: true } // محتوای اولیه برای جلوگیری از حذف نود در RTDB
+                password: serverPassword, 
+                content: { message: "سرور جدید با موفقیت ساخته شد." } // محتوای اولیه
             };
             
             const userDocRef = db.collection('users').doc(currentUser.uid);
             
-            // همزمان در Firestore و Realtime DB می‌نویسیم
+            // ✅ اصلاح شده: کل آبجکت newServer در Realtime DB ذخیره می‌شود
             await Promise.all([
                 userDocRef.set({
                     servers: firebase.firestore.FieldValue.arrayUnion(newServer)
                 }, { merge: true }),
-                rtdb.ref('servers/' + newServer.id).set(newServer.content)
+                rtdb.ref('servers/' + newServer.id).set(newServer)
             ]);
             
             closeModal();
@@ -503,7 +505,7 @@
 
             // اعتبارسنجی محتوای JSON
             if (!jsonText) {
-                newJsonContent = { message: "This server's content is empty." }; // مقدار پیش‌فرض اگر خالی باشد
+                newJsonContent = {}; // مقدار پیش‌فرض اگر خالی باشد
             } else {
                 try {
                     newJsonContent = JSON.parse(jsonText);
@@ -512,24 +514,23 @@
                 }
             }
 
-            // اطمینان از اینکه مقدار null ذخیره نشود (که باعث حذف نود در RTDB می‌شود)
             if (newJsonContent === null) {
                 throw new Error('محتوای JSON نمی‌تواند null باشد. برای خالی کردن از {} استفاده کنید.');
             }
             
-            // پیدا کردن سرور و آپدیت آن در کش داخلی
             const serverIndex = userServers.findIndex(s => s.id === serverId);
             if (serverIndex === -1) throw new Error('سرور مورد نظر یافت نشد.');
             
+            // آپدیت کردن آبجکت در کش داخلی
             userServers[serverIndex].name = serverName;
             userServers[serverIndex].content = newJsonContent;
 
             const userDocRef = db.collection('users').doc(currentUser.uid);
 
-            // آپدیت همزمان هر دو پایگاه داده
+            // ✅ اصلاح شده: کل آبجکت آپدیت شده در Realtime DB ذخیره می‌شود
             await Promise.all([
                 userDocRef.update({ servers: userServers }),
-                rtdb.ref('servers/' + serverId).set(newJsonContent)
+                rtdb.ref('servers/' + serverId).set(userServers[serverIndex])
             ]);
             
             closeModal();
