@@ -442,6 +442,14 @@
             modal.classList.remove('visible');
             modalMessage.textContent = '';
         }
+        
+        // --- تابع کمکی برای پاکسازی داده‌ها برای دیتابیس عمومی ---
+        function sanitizeForPublicDb(server) {
+            // فقط فیلد 'content' برای ذخیره‌سازی در Realtime DB عمومی برگردانده می‌شود
+            return {
+                content: server.content || {}
+            };
+        }
 
         // --- مدیریت ارسال فرم (ساخت یا ویرایش) ---
         async function handleFormSubmit() {
@@ -481,12 +489,15 @@
             
             const userDocRef = db.collection('users').doc(currentUser.uid);
             
-            // ✅ اصلاح شده: کل آبجکت newServer در Realtime DB ذخیره می‌شود
+            // ✅ اصلاح شده: فقط داده‌های پاکسازی شده (محتوا) در Realtime DB ذخیره می‌شود
+            const publicData = sanitizeForPublicDb(newServer);
             await Promise.all([
+                // 1. ذخیره کامل آبجکت سرور در Firestore (خصوصی)
                 userDocRef.set({
                     servers: firebase.firestore.FieldValue.arrayUnion(newServer)
                 }, { merge: true }),
-                rtdb.ref('servers/' + newServer.id).set(newServer)
+                // 2. ذخیره آبجکت پاکسازی شده در Realtime DB (عمومی)
+                rtdb.ref('servers/' + newServer.id).set(publicData)
             ]);
             
             closeModal();
@@ -527,10 +538,13 @@
 
             const userDocRef = db.collection('users').doc(currentUser.uid);
 
-            // ✅ اصلاح شده: کل آبجکت آپدیت شده در Realtime DB ذخیره می‌شود
+            // ✅ اصلاح شده: فقط داده‌های پاکسازی شده در Realtime DB ذخیره می‌شود
+            const publicData = sanitizeForPublicDb(userServers[serverIndex]);
             await Promise.all([
+                 // 1. ذخیره آرایه کامل سرورها در Firestore (خصوصی)
                 userDocRef.update({ servers: userServers }),
-                rtdb.ref('servers/' + serverId).set(userServers[serverIndex])
+                // 2. ذخیره آبجکت پاکسازی شده در Realtime DB (عمومی)
+                rtdb.ref('servers/' + serverId).set(publicData)
             ]);
             
             closeModal();
