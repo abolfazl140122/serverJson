@@ -4,290 +4,219 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>نمایش سرور</title>
-  <!--
-    دستورالعمل‌های راه‌اندازی:
-    ۱. پیکربندی Firebase: در بخش <script> پایین صفحه، متغیر firebaseConfig را با مقادیر پروژهٔ خود جایگزین کنید.
-    ۲. اجرای اسکریپت کاربر: برای کنترل اجرای کدهای جاوااسکریپت درون محتوای سرور، متغیر ALLOW_USER_SCRIPTS را تغییر دهید.
-       - مقدار false (پیش‌فرض): اسکریپت‌ها را برای امنیت بیشتر مسدود می‌کند.
-       - مقدار true: به اسکریپت‌های کاربر اجازهٔ اجرا می‌دهد.
-  -->
   <style>
-    :root {
-      --bg1: #00C6FF;
-      --bg2: #00B894;
-      --card: #ffffff;
-      --muted: #64748b;
-      --accent: #10b981;
+    :root{
+      --bg1:#00c6ff;
+      --bg2:#0072ff;
+      --card:#ffffff;
+      --muted:#64748b;
+      --accent:#10b981;
       --danger: #ef4444;
-      --dark: #0f172a;
-      --light-gray: #f1f5f9;
+      --loader-color: var(--bg2);
+    }
+    html,body{height:100%;margin:0;font-family:"Vazirmatn",-apple-system,system-ui,Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;}
+    body{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 100%);
+      color:#0f172a;
     }
 
-    html, body {
-      height: 100%;
-      margin: 0;
-      font-family: "Vazirmatn", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
-      color: var(--dark);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+    /* کانتینر اصلی */
+    .wrap{
+      width:100%;
+      max-width:980px;
+      margin: 20px;
     }
 
-    body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      box-sizing: border-box;
+    /* کارت اصلی برای نمایش محتوا */
+    .card{
+      background:var(--card);
+      border-radius:14px;
+      box-shadow:0 10px 30px rgba(2,6,23,0.18);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      min-height:220px;
+      align-items:stretch;
+      text-align:center;
+      padding: 40px;
     }
 
-    .wrap {
-      width: 100%;
-      max-width: 1024px;
-      margin: 0 auto;
-      transition: all 0.3s ease-in-out;
+    .card-private{
+      flex-direction:row;
+      text-align:right;
+      padding:0;
     }
 
-    /* --- کامپوننت کارت --- */
-    .card {
-      background: var(--card);
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(2, 6, 23, 0.15), 0 4px 8px rgba(2, 6, 23, 0.1);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      text-align: center;
-      padding: 48px 32px;
-      gap: 12px;
-      animation: fadeIn 0.5s ease-out;
+    .card-left{
+      flex:1.1;
+      padding:36px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:12px;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    .card-right{
+      flex:0.9;
+      background:linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.04));
+      padding:24px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
 
-    .card .icon {
-      font-size: 48px;
-      line-height: 1;
-      margin-bottom: 12px;
+    .title{
+      font-size:28px;
+      font-weight:800;
+      margin:0;
+      color:#0b1220;
     }
-
-    .card .title {
-      font-size: 28px;
-      font-weight: 800;
-      margin: 0;
-      color: var(--dark);
-    }
-
-    .card .subtitle {
-      color: var(--muted);
-      margin: 0;
-      font-size: 16px;
-      line-height: 1.6;
-      max-width: 450px;
-      margin-left: auto;
-      margin-right: auto;
+    .subtitle{
+      color:var(--muted);
+      margin: 8px 0 0 0;
+      font-size:16px;
+      line-height:1.6;
     }
     
-    .card .hint {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 16px;
+    .btn{
+      display:inline-block;
+      margin-top:24px;
+      background:#0ea5a4;
+      color:white;
+      padding:12px 22px;
+      border-radius:10px;
+      text-decoration:none;
+      font-weight:700;
+      transition: transform 0.2s, box-shadow 0.2s;
     }
-
-    .btn {
-      display: inline-block;
-      margin-top: 24px;
-      background: var(--accent);
-      color: white;
-      padding: 12px 24px;
-      border-radius: 12px;
-      text-decoration: none;
-      font-weight: 700;
-      transition: background-color 0.2s, transform 0.2s;
-      border: none;
-      cursor: pointer;
-    }
-
-    .btn:hover, .btn:focus {
-      background: #0f996f;
+    .btn:hover{
       transform: translateY(-2px);
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
-    .error-note {
-      color: var(--danger);
-      font-weight: 600;
-      font-family: monospace;
-      background: #fef2f2;
-      padding: 8px;
-      border-radius: 8px;
-      margin-top: 16px;
-      direction: ltr;
-      text-align: left;
-      white-space: pre-wrap;
-      word-break: break-all;
+    /* استایل‌های حالت خصوصی */
+    .badge{
+      display:inline-flex;
+      gap:8px;
+      margin-top:10px;
+      align-items:center;
+    }
+    .pill{
+      background:rgba(16,185,129,0.12);
+      color:var(--accent);
+      padding:8px 12px;
+      border-radius:999px;
+      font-weight:600;
+      font-size:13px;
     }
 
-    /* --- حالت بارگذاری --- */
-    .loader-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      padding: 60px 40px;
-      background: var(--card);
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(2, 6, 23, 0.15);
+    .lock{
+      width:72px;
+      height:72px;
+      background:linear-gradient(135deg,#fef3c7,#fee2e2);
+      border-radius:12px;
+      display:grid;
+      place-items:center;
+      box-shadow:0 6px 18px rgba(2,6,23,0.12);
+      font-size:34px;
     }
 
-    .spinner {
-      width: 48px;
-      height: 48px;
-      border: 5px solid rgba(0, 184, 148, 0.2);
-      border-top-color: var(--accent);
+    /* انیمیشن لودینگ */
+    .loader {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid var(--loader-color);
       border-radius: 50%;
       animation: spin 1s linear infinite;
+      margin: 0 auto 20px auto;
     }
-
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
-    /* --- نمایش محتوای عمومی --- */
-    #server-view {
-      width: 100%;
-      background: var(--card);
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(2, 6, 23, 0.12);
-      animation: fadeIn 0.5s ease-out;
-      display: flex;
-      flex-direction: column;
-      min-height: 80vh;
-    }
-
-    .server-header {
-      display: flex;
-      align-items: center;
-      padding: 12px 20px;
-      background: var(--light-gray);
-      border-bottom: 1px solid #e2e8f0;
-      gap: 12px;
+    /* استایل نمایش JSON */
+    .json-preview {
+      text-align:left;
+      direction:ltr;
+      white-space:pre-wrap;
+      background:#f1f5f9;
+      padding:18px;
+      border-radius:8px;
+      border: 1px solid #e2e8f0;
+      max-height: 400px;
+      overflow-y: auto;
+      color: #0b1220;
     }
     
-    .server-header .server-name {
-      font-weight: 700;
-      font-size: 16px;
-      flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .server-header .back-btn {
-      text-decoration: none;
-      color: var(--dark);
-      background: white;
-      padding: 8px 16px;
-      border-radius: 10px;
-      font-weight: 600;
+    /* یادداشت خطا */
+    .error-note{
+      color: var(--danger);
+      font-weight:600;
+      margin-top:16px;
+      background: rgba(239, 68, 68, 0.1);
+      padding: 10px;
+      border-radius: 8px;
       font-size: 14px;
-      border: 1px solid #e2e8f0;
-      transition: background-color 0.2s;
+      font-family: monospace;
     }
 
-    .server-header .back-btn:hover {
-      background: #f8fafc;
-    }
-
-    #serverFrame {
-      width: 100%;
-      height: 100%;
-      border: none;
-      flex-grow: 1; /* iframe grows to fill space */
-    }
-
-    /* --- ریسپانسیو --- */
-    @media (max-width: 768px) {
-      body {
-        padding: 16px;
-        align-items: flex-start;
-      }
-      
-      .card {
-        padding: 32px 24px;
-      }
-      
-      .card .title {
-        font-size: 22px;
-      }
-      
-      .card .subtitle {
-        font-size: 15px;
-      }
-      
-      #server-view {
-          min-height: calc(100vh - 32px);
-      }
+    /* طراحی واکنش‌گرا */
+    @media (max-width:720px){
+      .wrap { margin: 15px; }
+      .card { padding: 25px; }
+      .card-private{flex-direction:column}
+      .card-right{order:-1;padding:18px;}
+      .card-left{padding:20px;}
+      .title{font-size:22px}
+      .subtitle{font-size: 15px;}
     }
   </style>
 </head>
 <body>
-
-  <div class="wrap" id="contentArea" role="main" aria-live="polite">
-    <!-- وضعیت اولیه: در حال بارگذاری -->
-    <div class="loader-card" role="status" aria-label="در حال بارگذاری محتوا">
-      <div class="spinner"></div>
-      <h2 class="title" style="font-size: 22px; margin:0;">در حال بارگذاری...</h2>
-      <p class="subtitle" style="margin:0;">در حال واکشی داده‌های سرور — لطفاً صبر کنید</p>
+  <div class="wrap">
+    <div id="contentArea">
+      <!-- حالت اولیه بارگذاری گرافیکی -->
+      <div class="card" role="status" aria-label="در حال بارگذاری محتوا">
+        <div class="loader"></div>
+        <h2 class="title" style="margin:0;font-weight:800">در حال بارگذاری...</h2>
+        <p class="subtitle" style="margin-top:8px">لطفاً صبر کنید — در حال واکشی داده از سرور</p>
+      </div>
     </div>
   </div>
 
-  <!-- Firebase v8 -->
+  <!-- Firebase SDK نسخه 8 -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
   <script>
-    // --- تنظیمات اصلی ---
-    const DEBUG = false; // برای نمایش لاگ‌ها در کنسول، true کنید
-    const ALLOW_USER_SCRIPTS = false; // برای اجازه دادن به اجرای <script> های داخل محتوای سرور، true کنید
-
-    // --- پیکربندی Firebase (مقادیر پروژهٔ خود را اینجا جایگزین کنید) ---
+    // --- پیکربندی فایربیس با اطلاعات صحیح پروژه شما ---
     const firebaseConfig = {
-      apiKey: "AIzaSy...", // مقدار خود را جایگزین کنید
-      authDomain: "your-project-id.firebaseapp.com",
-      projectId: "your-project-id",
-      databaseURL: "https://your-project-id-default-rtdb.firebaseio.com"
+      apiKey: "AIzaSyAT8CDJoCOm8XVo62y-3CgS1Fqabdq2tjQ",
+      authDomain: "serverjson-a2107.firebaseapp.com",
+      databaseURL: "https://serverjson-a2107-default-rtdb.firebaseio.com",
+      projectId: "serverjson-a2107",
+      storageBucket: "serverjson-a2107.appspot.com",
+      messagingSenderId: "1058313915119",
+      appId: "1:1058313915119:web:4a967e4c8c401f1762a91a",
+      measurementId: "G-T3Y95SVYPM"
     };
-
-    // --- اولیه سازی Firebase ---
-    try {
-      firebase.initializeApp(firebaseConfig);
-    } catch(e) {
-      console.error("Firebase aoo already initialized");
-    }
+    
+    // راه‌اندازی Firebase
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const contentArea = document.getElementById('contentArea');
+    // --- خواندن id از پارامتر URL ---
     const params = new URLSearchParams(window.location.search);
     const serverId = params.get('id');
 
-    /**
-     * Helper for logging in debug mode
-     */
-    function log(...args) {
-      if (DEBUG) {
-        console.log('[DEBUG]', ...args);
-      }
-    }
+    const contentArea = document.getElementById('contentArea');
 
-    /**
-     * Sanitize HTML to prevent XSS.
-     */
+    // تابع برای ایمن‌سازی رشته‌های HTML
     function escapeHtml(unsafe) {
       return unsafe
         .replaceAll('&', '&amp;')
@@ -297,115 +226,106 @@
         .replaceAll("'", '&#039;');
     }
     
-    // --- توابع رندر کردن UI ---
-
-    function renderPrivateUI() {
-      log('Rendering Private UI');
+    // --- توابع رندر کردن واسط کاربری ---
+    function renderPrivateUI(reason) {
       contentArea.innerHTML = `
-        <div class="card" role="alert">
-          <div class="icon">🔒</div>
-          <h1 class="title">این سرور خصوصی است</h1>
-          <p class="subtitle">مالک این سرور آن را از حالت عمومی خارج کرده است. برای مشاهده باید وارد حساب کاربری خود شوید و دسترسی لازم را داشته باشید.</p>
-          <p class="hint">اگر شما مالک هستید، در داشبورد > تنظیمات سرور، وضعیت نمایش را به «عمومی» تغییر دهید.</p>
-          <div>
-            <a class="btn" href="./Login.html">ورود / داشبورد</a>
-          </div>
-        </div>
-      `;
-    }
-
-    function renderNotFoundUI() {
-      log('Rendering Not Found UI');
-      contentArea.innerHTML = `
-        <div class="card" role="alert">
-          <div class="icon">❌</div>
-          <h1 class="title">سرور یافت نشد</h1>
-          <p class="subtitle">آیدی وارد شده معتبر نیست یا این سرور حذف شده است. لطفاً آدرس را بررسی کرده و دوباره تلاش کنید.</p>
-          <div>
-            <a class="btn" href="./Home page.html">بازگشت به داشبورد</a>
-          </div>
-        </div>
-      `;
-    }
-    
-    function renderErrorUI(error) {
-      log('Rendering Error UI', error);
-      contentArea.innerHTML = `
-        <div class="card" role="alert">
-          <div class="icon">⚠️</div>
-          <h1 class="title">خطا در بارگذاری</h1>
-          <p class="subtitle">متأسفانه در اتصال به پایگاه داده یا واکشی اطلاعات مشکلی پیش آمد. لطفاً اتصال اینترنت خود را بررسی کرده و صفحه را دوباره بارگذاری کنید.</p>
-          ${ error && error.message ? `<div class="error-note">${escapeHtml(error.message)}</div>` : '' }
-        </div>
-      `;
-    }
-    
-    function renderPublicServer(data) {
-        log('Rendering Public Server', data);
-        const serverName = data.name || 'نمایش سرور';
-        const sandboxRules = ALLOW_USER_SCRIPTS ? 'allow-scripts allow-same-origin' : '';
-        log(`Sandbox rules set to: "${sandboxRules}"`);
-
-        contentArea.innerHTML = `
-            <div id="server-view">
-                <header class="server-header">
-                    <span class="server-name">${escapeHtml(serverName)}</span>
-                    <a href="./Home page.html" class="back-btn">بازگشت</a>
-                </header>
-                <iframe
-                    id="serverFrame"
-                    title="پیش‌نمایش محتوای سرور"
-                    sandbox="${sandboxRules}"
-                    srcdoc="${escapeHtml(data.content || '')}"
-                    aria-label="محتوای سرور"
-                ></iframe>
+        <div class="card card-private" role="alert">
+          <div class="card-left">
+            <h1 class="title">🔒 این سرور خصوصی است</h1>
+            <p class="subtitle">مالک این سرور آن را از حالت عمومی خارج کرده است. برای مشاهدهٔ محتوا باید وارد حساب کاربری شده و دسترسی لازم را داشته باشید.</p>
+            <div class="badge">
+              <div class="pill">حریم خصوصی</div>
+              <div style="flex:1"></div>
+              <a class="btn" href="./Login.html">ورود / دسترسی</a>
             </div>
-        `;
-        // For srcdoc to work correctly in all browsers, it's better to set it via JS property
-        const iframe = document.getElementById('serverFrame');
-        if (iframe) {
-            iframe.srcdoc = data.content || '';
-        }
+            ${ reason ? `<p style="margin-top:12px;color:var(--muted);font-size:13px">جزئیات: ${escapeHtml(reason)}</p>` : '' }
+          </div>
+          <div class="card-right">
+            <div class="lock">🔐</div>
+          </div>
+        </div>
+      `;
     }
 
+    function renderNotFound() {
+      contentArea.innerHTML = `
+        <div class="card" role="alert">
+          <h2 class="title">❌ سرور پیدا نشد</h2>
+          <p class="subtitle">چنین سروری وجود ندارد یا شناسه (ID) وارد شده اشتباه است.</p>
+          <p><a class="btn" href="./Home page.html">بازگشت به داشبورد</a></p>
+        </div>
+      `;
+    }
 
-    // --- منطق اصلی اجرا ---
+    function renderError(errorMessage, details = '') {
+      contentArea.innerHTML = `
+        <div class="card" role="alert">
+          <h2 class="title">خطا در بارگذاری</h2>
+          <p class="subtitle">${escapeHtml(errorMessage)}</p>
+          ${ details ? `<div class="error-note">${escapeHtml(details)}</div>` : '' }
+        </div>
+      `;
+    }
 
+    function renderHtmlContent(html) {
+      document.open();
+      document.write(html);
+      document.close();
+    }
+
+    function renderJsonContent(data) {
+       contentArea.innerHTML = `
+          <div class="card">
+            <h2 class="title">نمایش محتوای JSON سرور</h2>
+            <pre class="json-preview">${escapeHtml(JSON.stringify(data, null, 2))}</pre>
+            <p><a class="btn" href="./Home page.html">بازگشت</a></p>
+          </div>
+        `;
+    }
+
+    // --- منطق اصلی اجرایی ---
     if (!serverId) {
-      renderNotFoundUI();
+      renderNotFound();
     } else {
-      const fetchData = db.ref('servers/' + serverId).once('value');
-      
-      // تایم‌اوت ۱۲ ثانیه‌ای برای جلوگیری از انتظار بی‌نهایت
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('درخواست از پایگاه داده بیش از حد طول کشید (тайм-аут).')), 12000)
-      );
+      const TIMEOUT_DURATION = 12000; // ۱۲ ثانیه
 
-      Promise.race([fetchData, timeoutPromise])
+      const fetchPromise = db.ref('servers/' + serverId).once('value');
+      
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('درخواست از پایگاه داده بیش از حد طول کشید (Timeout). ممکن است به دلیل مشکلات شبکه یا تحریم باشد.'));
+        }, TIMEOUT_DURATION);
+      });
+
+      Promise.race([fetchPromise, timeoutPromise])
         .then(snap => {
-          if (!snap.exists() || !snap.val()) {
-            log('Snapshot does not exist or is null. Rendering private.');
-            renderPrivateUI();
+          const data = snap.val();
+
+          if (!data) {
+            renderPrivateUI('موردی برای این شناسه در پایگاه داده یافت نشد (مقدار null است).');
             return;
           }
 
-          const data = snap.val();
-          log('Data fetched:', data);
+          if (data.type && data.type.toLowerCase() === 'html') {
+            if (data.visibility && data.visibility.toLowerCase() !== 'public') {
+              renderPrivateUI('مالک سرور، دسترسی عمومی را محدود کرده است.');
+              return;
+            }
 
-          const isPublic = data.visibility && data.visibility.toLowerCase() === 'public';
-          const isHtml = data.type && data.type.toLowerCase() === 'html';
-          const hasContent = data.content && typeof data.content === 'string' && data.content.trim() !== '';
+            if (!data.content || String(data.content).trim() === '') {
+              renderPrivateUI('محتوای این سرور خالی است یا حذف شده است.');
+              return;
+            }
 
-          if (isPublic && isHtml && hasContent) {
-            renderPublicServer(data);
+            renderHtmlContent(data.content);
           } else {
-            log('Server is not public HTML or has no content. Rendering private.');
-            renderPrivateUI();
+            // اگر نوع داده HTML نیست، آن را به صورت JSON نمایش بده
+            renderJsonContent(data);
           }
         })
         .catch(err => {
           console.error("Firebase fetch error:", err);
-          renderErrorUI(err);
+          renderError('در اتصال به پایگاه داده مشکلی پیش آمد.', err.message);
         });
     }
   </script>
