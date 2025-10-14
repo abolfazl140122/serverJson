@@ -3,24 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد پیشرفته - Norix</title>
-
-    <!-- START: CodeMirror Dependencies -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/dracula.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/javascript/javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/xml/xml.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/css/css.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/htmlmixed/htmlmixed.min.js"></script>
-    <!-- END: CodeMirror Dependencies -->
-
+    <title>داشبورد - Norix</title>
     <style>
         /* متغیرهای اصلی برای تم روشن و تیره */
         :root {
             --primary-color: #3498db;
             --primary-hover-color: #2980b9;
-            --primary-color-rgb: 52, 152, 219;
+            --primary-color-rgb: 52, 152, 219; /* برای box-shadow */
             --danger-color: #e74c3c;
             --danger-hover-color: #c0392b;
             --success-color: #2ecc71;
@@ -51,24 +40,13 @@
             --shadow-medium: rgba(0,0,0,0.3);
             --input-bg-color: #333;
         }
-        
-        /* استایل CodeMirror برای تم تیره */
-        body.dark-theme .CodeMirror {
-            border-color: var(--border-color);
-            background-color: var(--input-bg-color);
-        }
-        body.dark-theme .CodeMirror-gutters {
-            background-color: #2c2c2c;
-            border-right-color: var(--border-color);
-        }
-        body.dark-theme .cm-s-dracula {
-            background-color: #282a36;
-        }
 
         /* استایل‌های پایه بدنه و فونت */
         body, html {
             margin: 0;
             padding: 0;
+            width: 100%;
+            height: 100%;
             font-family: var(--font-family);
             background-color: var(--bg-color);
             color: var(--text-color);
@@ -89,136 +67,315 @@
             z-index: 100;
             transition: background-color 0.3s ease;
         }
-        .header-title { font-size: 24px; font-weight: bold; margin: 0; }
-        .header-actions { display: flex; align-items: center; gap: 15px; }
-        #theme-toggle-btn { background: none; border: 1px solid var(--border-color); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px; display: flex; justify-content: center; align-items: center; color: var(--text-color); transition: background-color 0.3s, border-color 0.3s; }
-        #theme-toggle-btn:hover { background-color: var(--bg-color); }
-        #logout-btn { border: 1px solid var(--danger-color); color: var(--danger-color); padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; background: none; }
-        #logout-btn:hover { background-color: var(--danger-color); color: #fff; }
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        #theme-toggle-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-color);
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        #theme-toggle-btn:hover {
+            background-color: var(--bg-color);
+        }
+        #logout-btn {
+            border: 1px solid var(--danger-color);
+            color: var(--danger-color);
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            background: none;
+        }
+        #logout-btn:hover {
+            background-color: var(--danger-color);
+            color: #fff;
+        }
 
         /* کانتینر اصلی محتوا */
-        .main-container { padding: 25px; }
-        
-        /* START: Dashboard Controls (Search/Filter) */
-        .dashboard-controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
+        .main-container {
+            padding: 25px;
         }
-        .search-box {
-            flex-grow: 1;
-            position: relative;
+        #server-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
         }
-        .search-box input {
-            width: 100%;
-            padding: 12px 15px 12px 40px; /* Space for icon */
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+
+        /* کارت نمایش هر سرور (طراحی جدید) */
+        .server-card {
             background-color: var(--card-bg-color);
-            color: var(--text-color);
-            font-size: 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px var(--shadow-light);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            overflow: hidden;
+            border-left: 5px solid var(--primary-color);
         }
-        .search-box::before {
-            content: '🔍';
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
+        .server-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px var(--shadow-medium);
+        }
+        .server-card-content {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .server-icon {
+            font-size: 32px;
+            line-height: 1;
+        }
+        .server-details {
+            flex-grow: 1;
+        }
+        .server-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+        .server-meta {
+            font-size: 13px;
             color: var(--light-text-color);
         }
-        .filter-group select {
+        .server-meta span {
+            margin-left: 10px;
+        }
+
+        /* پیام عدم وجود سرور */
+        #no-servers-message {
+            text-align: center;
+            margin-top: 50px;
+            color: var(--light-text-color);
+            font-size: 16px;
+        }
+
+        /* دکمه افزودن سرور جدید */
+        #add-server-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            font-size: 36px;
+            line-height: 60px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            user-select: none;
+        }
+        #add-server-btn:hover {
+            background-color: var(--primary-hover-color);
+            transform: scale(1.1);
+        }
+
+        /* --- START: REFACTORED MODAL STYLES --- */
+
+        /* لایه مودال */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Enhanced overlay */
+            backdrop-filter: blur(4px); /* Soft blur effect */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 1000;
+            padding: 16px; /* Prevents modal from touching screen edges */
+            box-sizing: border-box;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* محتوای مودال */
+        .modal-content {
+            background-color: var(--card-bg-color);
+            border-radius: 16px; /* Softer radius */
+            width: 100%; /* Take full width of padded container */
+            max-width: 700px; /* Responsive max-width */
+            max-height: 90vh; /* Responsive max-height */
+            box-sizing: border-box;
+            box-shadow: 0 8px 30px var(--shadow-medium);
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.95) translateY(10px);
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .modal-overlay.visible .modal-content {
+            transform: scale(1) translateY(0);
+        }
+        
+        #server-form {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+            padding: 25px 30px;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0; /* Prevent title from shrinking */
+        }
+
+        /* بدنه مودال با گرید واکنش‌گرا */
+        .modal-body {
+            overflow-y: auto; /* Enable internal scrolling */
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Desktop: 2 columns */
+            gap: 25px;
+            flex-grow: 1;
+        }
+
+        /* استایل فرم‌های داخل مودال */
+        .input-group {
+            margin: 0; /* Remove margin as grid gap handles spacing */
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600; /* Bolder labels */
+            font-size: 15px;
+            color: var(--text-color);
+        }
+        .input-group input, .input-group textarea, .input-group select {
+            width: 100%;
             padding: 12px 15px;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            background-color: var(--card-bg-color);
-            color: var(--text-color);
+            box-sizing: border-box;
             font-size: 16px;
+            font-family: inherit;
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
+            transition: all 0.2s ease;
         }
-        /* END: Dashboard Controls */
+        .input-group input:focus, .input-group textarea:focus, .input-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.25);
+        }
 
-        #server-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-
-        /* کارت نمایش هر سرور (طراحی جدید) */
-        .server-card { background-color: var(--card-bg-color); border-radius: 12px; box-shadow: 0 4px 15px var(--shadow-light); transition: transform 0.2s ease, box-shadow 0.2s ease; overflow: hidden; border-left: 5px solid var(--primary-color); position: relative; }
-        .server-card:hover { transform: translateY(-5px); box-shadow: 0 6px 20px var(--shadow-medium); }
-        .server-card-content { padding: 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; }
-        .server-icon { font-size: 32px; line-height: 1; }
-        .server-details { flex-grow: 1; }
-        .server-name { font-size: 18px; font-weight: 600; margin: 0; }
-        .server-meta { font-size: 13px; color: var(--light-text-color); }
-        .server-meta span { margin-left: 10px; }
-        .server-card-actions { position: absolute; top: 10px; left: 10px; display: flex; gap: 5px; }
-        .card-action-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--light-text-color); transition: color 0.2s; padding: 5px; }
-        .card-action-btn:hover { color: var(--primary-color); }
-
-        #no-servers-message { text-align: center; margin-top: 50px; color: var(--light-text-color); font-size: 16px; }
-
-        #add-server-btn { position: fixed; bottom: 30px; left: 30px; width: 60px; height: 60px; background-color: var(--primary-color); color: #fff; border: none; border-radius: 50%; font-size: 36px; line-height: 60px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.2); cursor: pointer; transition: background-color 0.3s ease, transform 0.2s ease; user-select: none; z-index: 999;}
-        #add-server-btn:hover { background-color: var(--primary-hover-color); transform: scale(1.1); }
-
-        /* --- START: REFACTORED MODAL STYLES --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; z-index: 1000; padding: 16px; box-sizing: border-box; }
-        .modal-overlay.visible { opacity: 1; visibility: visible; }
-
-        .modal-content { background-color: var(--card-bg-color); border-radius: 16px; width: 100%; max-width: 900px; max-height: 90vh; box-sizing: border-box; box-shadow: 0 8px 30px var(--shadow-medium); display: flex; flex-direction: column; transform: scale(0.95) translateY(10px); transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
-        .modal-overlay.visible .modal-content { transform: scale(1) translateY(0); }
+        /* چیدمان ستون‌ها برای آیتم‌های بزرگتر */
+        .editor-container, .html-preview-container, .server-link-container, #modal-message {
+            grid-column: 1 / -1; /* Span full width */
+        }
         
-        #server-form { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+        #json-content-input, #html-content-input {
+            min-height: 200px;
+            direction: ltr;
+            text-align: left;
+            font-family: 'Courier New', Courier, monospace;
+            resize: vertical;
+        }
+        .html-preview-container { grid-column: 1 / -1; }
+        #html-preview {
+            width: 100%;
+            height: 200px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--card-bg-color); /* Match theme */
+        }
         
-        .modal-title { font-size: 24px; font-weight: 600; margin: 0; padding: 25px 30px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
-
-        .modal-body { overflow-y: auto; padding: 30px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; flex-grow: 1; }
-
-        .input-group { text-align: right; display: flex; flex-direction: column; }
-        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 15px; color: var(--text-color); }
-        .input-group input, .input-group select { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; font-size: 16px; background-color: var(--input-bg-color); color: var(--text-color); transition: all 0.2s ease; }
-        .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.25); }
-
-        .full-width-container, #modal-message { grid-column: 1 / -1; }
-        
-        .personalization-group { display: flex; flex-direction: row; gap: 15px; align-items: flex-end; }
+        /* گروه شخصی‌سازی (آیکون و رنگ) */
+        .personalization-group {
+            display: flex;
+            flex-direction: row; /* Align items horizontally */
+            gap: 15px;
+            align-items: flex-end; /* Align to the bottom for clean look */
+        }
         .personalization-group > div { flex-grow: 1; }
-        .personalization-group > div:last-child { flex-grow: 0; }
-        .personalization-group input[type="color"] { min-width: 50px; height: 50px; padding: 5px; border-radius: 8px; cursor: pointer; }
-        
-        .server-link-container { margin-top: 15px; background-color: var(--bg-color); padding: 12px 15px; border-radius: 8px; }
+        .personalization-group > div:last-child { flex-grow: 0; } /* Don't grow color picker */
+        .personalization-group input[type="color"] {
+            min-width: 50px;
+            height: 50px; /* Match input height */
+            padding: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .server-link-container {
+            margin-top: 15px;
+            background-color: var(--bg-color);
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
         .server-link-container label { font-size: 14px; margin-bottom: 5px; }
-        .server-link-container input { width: 100%; border: none; background: none; font-size: 14px; color: var(--primary-color); direction: ltr; cursor: pointer; padding: 0; }
+        .server-link-container input { width: 100%; border: none; background: none; font-size: 14px; color: var(--primary-color); direction: ltr; cursor: pointer; padding: 0;}
+        .server-link-container input:focus { box-shadow: none; border: none;}
         
-        /* START: HTML Editor Tabs */
-        .html-editor-tabs { display: flex; border-bottom: 1px solid var(--border-color); }
-        .tab-btn { padding: 10px 15px; cursor: pointer; background: none; border: none; font-size: 15px; color: var(--light-text-color); font-weight: 500; border-bottom: 3px solid transparent; }
-        .tab-btn.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        /* END: HTML Editor Tabs */
-        
-        /* START: JSON Multi-Path Editor */
-        .json-path-item { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
-        .json-path-item input { direction: ltr; text-align: left; }
-        .json-path-item .CodeMirror { flex-grow: 1; }
-        .remove-path-btn { background: none; border: 1px solid var(--danger-color); color: var(--danger-color); border-radius: 8px; cursor: pointer; width: 40px; height: 40px; font-size: 20px; }
-        #add-json-path-btn { background-color: var(--bg-color); border: 1px dashed var(--border-color); color: var(--text-color); padding: 10px; width: 100%; border-radius: 8px; cursor: pointer; }
-        /* END: JSON Multi-Path Editor */
-
-        /* CodeMirror styles */
-        .CodeMirror { border: 1px solid var(--border-color); border-radius: 8px; height: auto; min-height: 200px; font-family: 'Courier New', monospace; font-size: 14px; }
-
-        #html-preview { width: 100%; height: 250px; border: 1px solid var(--border-color); border-radius: 8px; background-color: #fff; }
-
-        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: auto; border-top: 1px solid var(--border-color); padding: 20px 30px; background-color: var(--header-bg-color); border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; flex-shrink: 0; }
-        .modal-btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+        /* بخش دکمه‌های مودال */
+        .modal-actions { 
+            display: flex; 
+            justify-content: flex-end; /* Align buttons to the right */
+            gap: 12px; 
+            margin-top: auto; /* Push to the bottom */
+            border-top: 1px solid var(--border-color); 
+            padding: 20px 30px; 
+            background-color: var(--header-bg-color);
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+            flex-shrink: 0; /* Prevent actions from shrinking */
+            transition: border-color 0.3s; 
+        }
+        .modal-btn { 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: 600; /* Bolder buttons */
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+        }
         #submit-btn { background-color: var(--primary-color); color: #fff; order: 3; }
-        #submit-btn:hover { background-color: var(--primary-hover-color); }
+        #submit-btn:hover { background-color: var(--primary-hover-color); transform: translateY(-2px); }
         #cancel-btn { background-color: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); order: 2; }
         #cancel-btn:hover { background-color: var(--border-color); }
-        #delete-btn { background-color: transparent; color: var(--danger-color); font-weight: 500; order: 1; margin-right: auto; }
+        #delete-btn { background-color: transparent; color: var(--danger-color); font-weight: 500; order: 1; margin-right: auto; } /* Push to the far left */
         #delete-btn:hover { background-color: rgba(231, 76, 60, 0.1); }
         
+        /* پیام خطا در مودال */
         #modal-message { color: var(--danger-color); min-height: 20px; font-weight: 500; text-align: center; }
 
-        /* سوییچ */
+        /* سوییچ برای نمایش عمومی/خصوصی */
         .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
@@ -226,16 +383,36 @@
         input:checked + .slider { background-color: var(--success-color); }
         input:checked + .slider:before { transform: translateX(26px); }
 
+        /* --- Media Queries for Responsive Modal --- */
         @media (max-width: 768px) {
-            .modal-content { max-width: 100%; max-height: 95vh; }
-            .modal-body { grid-template-columns: 1fr; padding: 20px; gap: 20px; }
-            .modal-title { padding: 20px; font-size: 20px; }
-            .modal-actions { padding: 15px; flex-direction: column-reverse; }
-            .modal-btn { width: 100%; }
-            #delete-btn { margin-right: 0; margin-top: 8px; }
-            #add-server-btn { bottom: 20px; right: 20px; left: auto; }
+            .modal-body {
+                grid-template-columns: 1fr; /* Tablet/Mobile: 1 column */
+                padding: 20px;
+                gap: 20px;
+            }
+            .modal-title {
+                padding: 20px;
+                font-size: 20px;
+            }
+            .modal-actions {
+                padding: 15px;
+                flex-direction: column-reverse; /* Stack buttons vertically */
+            }
+            .modal-btn {
+                width: 100%;
+            }
+            #delete-btn {
+                margin-right: 0;
+                margin-top: 8px;
+            }
+            #add-server-btn {
+                bottom: 20px;
+                right: 20px;
+                left: auto;
+            }
         }
         /* --- END: REFACTORED MODAL STYLES --- */
+
     </style>
 </head>
 <body>
@@ -249,28 +426,6 @@
     </header>
 
     <main class="main-container">
-        <!-- START: Dashboard Controls -->
-        <div class="dashboard-controls">
-            <div class="search-box">
-                <input type="text" id="search-input" placeholder="جستجوی نام سرور...">
-            </div>
-            <div class="filter-group">
-                <select id="filter-type">
-                    <option value="all">همه نوع‌ها</option>
-                    <option value="json">JSON</option>
-                    <option value="html">HTML</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <select id="filter-visibility">
-                    <option value="all">همه وضعیت‌ها</option>
-                    <option value="public">عمومی</option>
-                    <option value="private">خصوصی</option>
-                </select>
-            </div>
-        </div>
-        <!-- END: Dashboard Controls -->
-
         <div id="server-list"></div>
         <p id="no-servers-message" style="display: none;">هنوز سروری نساخته‌اید. برای شروع روی علامت + کلیک کنید.</p>
     </main>
@@ -280,36 +435,20 @@
     <!-- مودال داینامیک برای ساخت و ویرایش سرور -->
     <div id="server-modal" class="modal-overlay">
         <div class="modal-content">
+             <!-- The form now wraps the entire modal content for better structure -->
             <form id="server-form" onsubmit="return false;">
                 <h2 id="modal-title" class="modal-title">ساخت سرور جدید</h2>
                 <div class="modal-body">
                     
                     <input type="hidden" id="server-id-input">
                     
-                    <!-- START: Template Selector (Create Mode Only) -->
-                    <div class="input-group full-width-container" id="template-container">
-                        <label for="template-select">شروع با یک قالب آماده (اختیاری)</label>
-                        <select id="template-select">
-                            <option value="none">شروع از صفر</option>
-                            <optgroup label="JSON Templates">
-                                <option value="json-users">لیست کاربران</option>
-                                <option value="json-products">کاتالوگ محصولات</option>
-                            </optgroup>
-                            <optgroup label="HTML Templates">
-                                <option value="html-portfolio">پروفایل ساده</option>
-                                <option value="html-landing">صفحه فرود</option>
-                            </optgroup>
-                        </select>
-                    </div>
-                    <!-- END: Template Selector -->
-
                     <div class="input-group">
                         <label for="server-name-input">نام سرور</label>
                         <input type="text" id="server-name-input" required>
                     </div>
                     
                     <div class="input-group">
-                        <label for="server-type-select">نوع سرور</o-label>
+                        <label for="server-type-select">نوع سرور</label>
                         <select id="server-type-select">
                             <option value="json">JSON</option>
                             <option value="html">HTML</option>
@@ -317,10 +456,11 @@
                     </div>
 
                     <div class="input-group" id="password-container">
-                        <label for="server-password-input">رمز عبور سرور (برای ساخت)</label>
+                        <label for="server-password-input">رمز عبور سرور</label>
                         <input type="password" id="server-password-input">
                     </div>
 
+                    <!-- Personalization fields are now balanced -->
                     <div class="input-group personalization-group">
                          <div style="flex-grow: 1;">
                             <label for="server-icon-input">آیکون (ایموجی)</label>
@@ -333,53 +473,36 @@
                     </div>
 
                     <div class="input-group">
-                         <label>نمایش عمومی (Public)</label>
+                         <label for="server-visibility-toggle">نمایش عمومی (Public)</label>
                          <label class="switch">
                            <input type="checkbox" id="server-visibility-toggle" checked>
                            <span class="slider"></span>
                          </label>
                     </div>
-                    
-                    <!-- START: Custom Slug Input -->
-                    <div class="input-group" id="slug-container" style="display: none;">
-                        <label for="server-slug-input">آدرس سفارشی (فقط حروف انگلیسی، اعداد و -)</label>
-                        <input type="text" id="server-slug-input" placeholder="my-awesome-api" pattern="[a-zA-Z0-9-]+" style="direction: ltr; text-align: left;">
-                    </div>
-                    <!-- END: Custom Slug Input -->
 
                     <!-- بخش ویرایشگرها -->
-                    <!-- START: JSON Multi-Path Editor -->
-                    <div class="full-width-container" id="json-editor-container">
-                        <label>محتوای JSON (بر اساس مسیر)</label>
-                        <div id="json-paths-wrapper"></div>
-                        <button type="button" id="add-json-path-btn">+ افزودن مسیر جدید</button>
+                    <div class="editor-container" id="json-editor-container">
+                        <label for="json-content-input">محتوای JSON</label>
+                        <textarea id="json-content-input" placeholder='{ "key": "value" }'></textarea>
                     </div>
-                    <!-- END: JSON Multi-Path Editor -->
                     
-                    <!-- START: HTML Tabbed Editor -->
-                    <div class="full-width-container" id="html-editor-container" style="display: none;">
-                        <div class="html-editor-tabs">
-                            <button type="button" class="tab-btn active" data-tab="html">HTML</button>
-                            <button type="button" class="tab-btn" data-tab="css">CSS</button>
-                            <button type="button" class="tab-btn" data-tab="js">JavaScript</button>
-                        </div>
-                        <div id="tab-html" class="tab-content active"><textarea id="html-content-input"></textarea></div>
-                        <div id="tab-css" class="tab-content"><textarea id="css-content-input"></textarea></div>
-                        <div id="tab-js" class="tab-content"><textarea id="js-content-input"></textarea></div>
+                    <div class="editor-container" id="html-editor-container" style="display: none;">
+                        <label for="html-content-input">محتوای HTML</label>
+                        <textarea id="html-content-input" placeholder="<h1>سلام دنیا!</h1>"></textarea>
                     </div>
-                    <!-- END: HTML Tabbed Editor -->
                     
-                    <div class="full-width-container" id="html-preview-wrapper" style="display: none;">
+                    <!-- پیش‌نمایش HTML -->
+                    <div class="html-preview-container" id="html-preview-wrapper" style="display: none;">
                         <label>پیش‌نمایش زنده</label>
                         <iframe id="html-preview" srcdoc=""></iframe>
                     </div>
 
-                    <div class="server-link-container full-width-container" style="display: none;" id="server-link-wrapper">
+                    <div class="server-link-container" style="display: none;" id="server-link-wrapper">
                         <label>لینک عمومی سرور (برای باز کردن کلیک کنید)</label>
                         <input type="text" id="server-link-input" readonly>
                     </div>
                     
-                    <p id="modal-message" class="full-width-container"></p>
+                    <p id="modal-message"></p>
                 </div>
                 <div class="modal-actions">
                     <button type="button" id="delete-btn" class="modal-btn" style="display: none;">حذف</button>
@@ -397,7 +520,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <script>
-        // --- START: Firebase Configuration (KEEP YOUR VALUES HERE) ---
+        // --- پیکربندی Firebase ---
         const firebaseConfig = {
             apiKey: "AIzaSyAT8CDJoCOm8XVo62y-3CgS1Fqabdq2tjQ",
             authDomain: "serverjson-a2107.firebaseapp.com",
@@ -408,26 +531,15 @@
             measurementId: "G-T3Y95SVYPM",
             databaseURL: "https://serverjson-a2107-default-rtdb.firebaseio.com"
         };
-        // --- END: Firebase Configuration ---
 
-        // --- Firebase Initialization ---
+        // --- مقداردهی اولیه سرویس‌های Firebase ---
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         const rtdb = firebase.database();
 
-        // --- Global Variables & DOM Elements ---
-        let currentUser;
-        let userServers = []; 
-        let jsonPathEditors = {};
-        let htmlCodeEditor, cssCodeEditor, jsCodeEditor;
-        
-        // ... (DOM elements selectors)
+        // --- انتخاب عناصر DOM ---
         const serverList = document.getElementById('server-list');
-        const noServersMessage = document.getElementById('no-servers-message');
-        const searchInput = document.getElementById('search-input');
-        const filterType = document.getElementById('filter-type');
-        const filterVisibility = document.getElementById('filter-visibility');
         const addServerBtn = document.getElementById('add-server-btn');
         const modal = document.getElementById('server-modal');
         const modalTitle = document.getElementById('modal-title');
@@ -437,85 +549,89 @@
         const serverPasswordInput = document.getElementById('server-password-input');
         const passwordContainer = document.getElementById('password-container');
         const serverTypeSelect = document.getElementById('server-type-select');
-        const templateContainer = document.getElementById('template-container');
-        const templateSelect = document.getElementById('template-select');
+        const jsonEditorContainer = document.getElementById('json-editor-container');
+        const htmlEditorContainer = document.getElementById('html-editor-container');
+        const jsonContentInput = document.getElementById('json-content-input');
+        const htmlContentInput = document.getElementById('html-content-input');
+        const htmlPreviewWrapper = document.getElementById('html-preview-wrapper');
+        const htmlPreview = document.getElementById('html-preview');
         const serverIconInput = document.getElementById('server-icon-input');
         const serverColorInput = document.getElementById('server-color-input');
         const serverVisibilityToggle = document.getElementById('server-visibility-toggle');
-        const slugContainer = document.getElementById('slug-container');
-        const serverSlugInput = document.getElementById('server-slug-input');
-        const jsonEditorContainer = document.getElementById('json-editor-container');
-        const jsonPathsWrapper = document.getElementById('json-paths-wrapper');
-        const addJsonPathBtn = document.getElementById('add-json-path-btn');
-        const htmlEditorContainer = document.getElementById('html-editor-container');
-        const htmlPreviewWrapper = document.getElementById('html-preview-wrapper');
-        const htmlPreview = document.getElementById('html-preview');
         const serverLinkWrapper = document.getElementById('server-link-wrapper');
         const serverLinkInput = document.getElementById('server-link-input');
         const modalMessage = document.getElementById('modal-message');
+        const noServersMessage = document.getElementById('no-servers-message');
         const logoutBtn = document.getElementById('logout-btn');
         const cancelBtn = document.getElementById('cancel-btn');
         const submitBtn = document.getElementById('submit-btn');
         const deleteBtn = document.getElementById('delete-btn');
         const themeToggleBtn = document.getElementById('theme-toggle-btn');
-        
-        // --- Templates ---
-        const serverTemplates = {
-            'json-users': { type: 'json', content: { "/users": [{id: 1, name: "کاربر اول"}, {id: 2, name: "کاربر دوم"}] } },
-            'json-products': { type: 'json', content: { "/products": [{id: 101, name: "محصول ۱", price: 50}, {id: 102, name: "محصول ۲", price: 80}] } },
-            'html-portfolio': { type: 'html', content: { html: `<h1>نام شما</h1>\n<p>تخصص شما</p>`, css: `body { font-family: sans-serif; text-align: center; }`, js: `console.log("پروفایل بارگذاری شد");` } },
-            'html-landing': { type: 'html', content: { html: `<main><h1>محصول شگفت‌انگیز ما</h1></main>`, css: `main { padding: 50px; }`, js: `` } }
-        };
 
-        // --- Authentication & Initialization ---
+
+        let currentUser;
+        let userServers = []; // کش کردن اطلاعات سرورهای کاربر
+
+        // --- مدیریت تم (روشن/تیره) ---
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.body.classList.add('dark-theme');
+                themeToggleBtn.textContent = '🌙';
+            } else {
+                document.body.classList.remove('dark-theme');
+                themeToggleBtn.textContent = '☀️';
+            }
+        }
+        
+        async function saveThemePreference(theme) {
+            if (!currentUser) return;
+            const userDocRef = db.collection('users').doc(currentUser.uid);
+            await userDocRef.set({ preferences: { theme: theme } }, { merge: true });
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            const newTheme = document.body.classList.contains('dark-theme') ? 'light' : 'dark';
+            applyTheme(newTheme);
+            saveThemePreference(newTheme);
+        });
+
+        // --- مدیریت وضعیت ورود کاربر ---
         auth.onAuthStateChanged(async user => {
             if (user) {
                 currentUser = user;
-                initializeCodeEditors();
                 await loadUserServersAndPreferences();
             } else {
-                window.location.href = './Login.html';
+                window.location.href = './Login.html'; // یا صفحه لاگین شما
             }
         });
         
+        // --- بارگذاری سرورها و تنظیمات کاربر ---
         async function loadUserServersAndPreferences() {
+            serverList.innerHTML = '';
             try {
                 const userDocRef = db.collection('users').doc(currentUser.uid);
                 const doc = await userDocRef.get();
                 if (doc.exists) {
                     const data = doc.data();
-                    applyTheme(data.preferences?.theme || 'light');
+                    // Load Theme
+                    const savedTheme = data.preferences?.theme || 'light';
+                    applyTheme(savedTheme);
+                    // Load Servers
                     userServers = data.servers || [];
-                    renderServerList();
+                    noServersMessage.style.display = userServers.length === 0 ? 'block' : 'none';
+                    userServers.forEach(displayServerCard);
                 } else {
-                    applyTheme('light');
-                    userServers = [];
-                    renderServerList();
+                     noServersMessage.style.display = 'block';
+                     userServers = [];
+                     applyTheme('light'); // Default theme
                 }
             } catch (error) {
                 console.error("Error loading user data:", error);
                 alert("خطا در بارگذاری اطلاعات.");
             }
         }
-
-        // --- Dashboard UI (Render, Search, Filter) ---
-        function renderServerList() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const typeFilter = filterType.value;
-            const visibilityFilter = filterVisibility.value;
-
-            const filteredServers = userServers.filter(server => {
-                const nameMatch = server.name.toLowerCase().includes(searchTerm);
-                const typeMatch = typeFilter === 'all' || server.type === typeFilter;
-                const visibilityMatch = visibilityFilter === 'all' || server.visibility === visibilityFilter;
-                return nameMatch && typeMatch && visibilityMatch;
-            });
-            
-            serverList.innerHTML = '';
-            noServersMessage.style.display = filteredServers.length === 0 ? 'block' : 'none';
-            filteredServers.forEach(displayServerCard);
-        }
-
+        
+        // --- ایجاد کارت برای هر سرور ---
         function displayServerCard(server) {
             const card = document.createElement('div');
             card.className = 'server-card';
@@ -523,12 +639,9 @@
             card.style.borderLeftColor = server.color || 'var(--primary-color)';
             
             const visibilityIcon = server.visibility === 'public' ? '🌐' : '🔒';
-            const serverType = server.type.toUpperCase();
+            const serverType = server.type === 'html' ? 'HTML' : 'JSON';
 
             card.innerHTML = `
-                <div class="server-card-actions">
-                    <button class="card-action-btn duplicate-btn" title="تکثیر سرور">📄</button>
-                </div>
                 <div class="server-card-content">
                     <span class="server-icon">${server.icon || '🚀'}</span>
                     <div class="server-details">
@@ -540,171 +653,11 @@
                     </div>
                 </div>
             `;
-            card.querySelector('.server-card-content').addEventListener('click', () => openModalForEdit(server.id));
-            card.querySelector('.duplicate-btn').addEventListener('click', () => duplicateServer(server.id));
+            card.addEventListener('click', () => openModalForEdit(server));
             serverList.appendChild(card);
         }
-
-        // --- Code Editor Management ---
-        function createCodeMirrorInstance(textarea, mode) {
-            return CodeMirror.fromTextArea(textarea, {
-                lineNumbers: true,
-                mode: mode,
-                theme: document.body.classList.contains('dark-theme') ? 'dracula' : 'default',
-                lineWrapping: true,
-                indentUnit: 2
-            });
-        }
         
-        function initializeCodeEditors() {
-            htmlCodeEditor = createCodeMirrorInstance(document.getElementById('html-content-input'), 'htmlmixed');
-            cssCodeEditor = createCodeMirrorInstance(document.getElementById('css-content-input'), 'css');
-            jsCodeEditor = createCodeMirrorInstance(document.getElementById('js-content-input'), 'javascript');
-            
-            [htmlCodeEditor, cssCodeEditor, jsCodeEditor].forEach(editor => {
-                editor.on('change', updateHtmlPreview);
-            });
-        }
-        
-        function refreshAllEditors() {
-            [htmlCodeEditor, cssCodeEditor, jsCodeEditor, ...Object.values(jsonPathEditors)].forEach(editor => {
-                if (editor) editor.refresh();
-            });
-        }
-
-        function updateHtmlPreview() {
-            const html = htmlCodeEditor.getValue();
-            const css = cssCodeEditor.getValue();
-            const js = jsCodeEditor.getValue();
-            const srcDoc = `
-                <html>
-                    <head><style>${css}</style></head>
-                    <body>${html}<script>${js}<\/script></body>
-                </html>
-            `;
-            htmlPreview.srcdoc = srcDoc;
-        }
-        
-        // --- JSON Multi-Path UI ---
-        function addJsonPath(path = '', content = {}) {
-            const pathId = `path_${Date.now()}`;
-            const wrapper = document.createElement('div');
-            wrapper.className = 'json-path-item';
-            wrapper.innerHTML = `
-                <input type="text" placeholder="/path" value="${path}" class="json-path-input" required>
-                <button type="button" class="remove-path-btn">×</button>
-            `;
-            const textarea = document.createElement('textarea');
-            wrapper.insertBefore(textarea, wrapper.querySelector('.remove-path-btn'));
-            jsonPathsWrapper.appendChild(wrapper);
-
-            const editor = createCodeMirrorInstance(textarea, { name: 'javascript', json: true });
-            editor.setValue(JSON.stringify(content, null, 2));
-            jsonPathEditors[pathId] = editor;
-            
-            wrapper.querySelector('.remove-path-btn').addEventListener('click', () => {
-                wrapper.remove();
-                delete jsonPathEditors[pathId];
-            });
-        }
-        
-        // --- Modal Management ---
-        function openModalForCreate() {
-            serverForm.reset();
-            serverIdInput.value = '';
-            modalTitle.textContent = 'ساخت سرور جدید';
-            submitBtn.textContent = 'ساختن';
-            serverPasswordInput.required = true;
-            passwordContainer.style.display = 'block';
-            serverTypeSelect.disabled = false;
-            templateContainer.style.display = 'block';
-            deleteBtn.style.display = 'none';
-            serverLinkWrapper.style.display = 'none';
-            slugContainer.style.display = serverVisibilityToggle.checked ? 'block' : 'none';
-            serverColorInput.value = '#3498db';
-            serverIconInput.value = '';
-            serverVisibilityToggle.checked = true;
-            serverSlugInput.value = '';
-            
-            jsonPathsWrapper.innerHTML = '';
-            jsonPathEditors = {};
-            addJsonPath('/', { message: "سرور جدید ساخته شد." });
-
-            toggleEditorView('json');
-            modal.classList.add('visible');
-            setTimeout(refreshAllEditors, 10); // Refresh after modal animation
-        }
-
-        function openModalForEdit(serverId) {
-            const server = userServers.find(s => s.id === serverId);
-            if (!server) return;
-
-            serverForm.reset();
-            serverIdInput.value = server.id;
-            serverNameInput.value = server.name;
-            serverTypeSelect.value = server.type || 'json';
-            serverTypeSelect.disabled = true;
-            templateContainer.style.display = 'none';
-            
-            serverPasswordInput.required = false;
-            passwordContainer.style.display = 'none';
-
-            serverIconInput.value = server.icon || '🚀';
-            serverColorInput.value = server.color || '#3498db';
-            serverVisibilityToggle.checked = server.visibility === 'public';
-            serverSlugInput.value = server.slug || '';
-            slugContainer.style.display = server.visibility === 'public' ? 'block' : 'none';
-            
-            modalTitle.textContent = `ویرایش سرور: ${server.name}`;
-            submitBtn.textContent = 'ذخیره تغییرات';
-            
-            jsonPathsWrapper.innerHTML = '';
-            jsonPathEditors = {};
-
-            if (server.type === 'html') {
-                const content = server.content || {};
-                htmlCodeEditor.setValue(content.html || '');
-                cssCodeEditor.setValue(content.css || '');
-                jsCodeEditor.setValue(content.js || '');
-            } else { // JSON type
-                // Handle both old format (object) and new format (object of objects)
-                const content = server.content || {};
-                if (Object.keys(content).length === 0 || typeof Object.values(content)[0] !== 'object') {
-                    // Old format, convert it
-                    addJsonPath('/', content);
-                } else {
-                    for (const path in content) {
-                        addJsonPath(path, content[path]);
-                    }
-                }
-            }
-            toggleEditorView(server.type || 'json');
-            
-            updateServerLink(server);
-            
-            deleteBtn.style.display = 'block';
-            modal.classList.add('visible');
-            setTimeout(refreshAllEditors, 10);
-        }
-
-        function closeModal() {
-            modal.classList.remove('visible');
-            modalMessage.textContent = '';
-        }
-        
-        function updateServerLink(server) {
-            if (server.visibility === 'public') {
-                const slug = server.slug || server.id;
-                const link = `https://your-viewer-domain/view/${slug}`; // TODO: Replace with actual viewer URL
-                serverLinkInput.value = link;
-                serverLinkInput.onclick = () => window.open(link, '_blank');
-                serverLinkWrapper.style.display = 'block';
-            } else {
-                serverLinkWrapper.style.display = 'none';
-            }
-        }
-        
-        // --- Form & Data Handling ---
+        // --- مدیریت نمایش ادیتورها بر اساس نوع سرور ---
         function toggleEditorView(type) {
             if (type === 'html') {
                 jsonEditorContainer.style.display = 'none';
@@ -716,103 +669,104 @@
                 htmlPreviewWrapper.style.display = 'none';
             }
         }
+        serverTypeSelect.addEventListener('change', () => toggleEditorView(serverTypeSelect.value));
+        htmlContentInput.addEventListener('input', () => {
+             htmlPreview.srcdoc = htmlContentInput.value;
+        });
 
-        function applyTemplate() {
-            const templateKey = templateSelect.value;
-            if (templateKey === 'none') return;
+        // --- مدیریت مودال (باز و بسته کردن) ---
+        function openModalForCreate() {
+            serverForm.reset();
+            serverIdInput.value = '';
+            modalTitle.textContent = 'ساخت سرور جدید';
+            submitBtn.textContent = 'ساختن';
+            serverPasswordInput.required = true;
+            passwordContainer.style.display = 'block';
+            serverTypeSelect.disabled = false;
+            deleteBtn.style.display = 'none';
+            serverLinkWrapper.style.display = 'none';
+            serverColorInput.value = '#3498db'; // Reset color
+            serverIconInput.value = ''; // Reset icon
+            serverVisibilityToggle.checked = true;
 
-            const template = serverTemplates[templateKey];
-            serverTypeSelect.value = template.type;
-            toggleEditorView(template.type);
-
-            if (template.type === 'html') {
-                htmlCodeEditor.setValue(template.content.html || '');
-                cssCodeEditor.setValue(template.content.css || '');
-                jsCodeEditor.setValue(template.content.js || '');
-            } else {
-                jsonPathsWrapper.innerHTML = '';
-                jsonPathEditors = {};
-                for (const path in template.content) {
-                    addJsonPath(path, template.content[path]);
-                }
-            }
+            toggleEditorView('json');
+            modal.classList.add('visible');
         }
 
+        function openModalForEdit(server) {
+            serverForm.reset();
+            serverIdInput.value = server.id;
+            serverNameInput.value = server.name;
+            serverTypeSelect.value = server.type || 'json';
+            serverTypeSelect.disabled = true; // Type cannot be changed after creation
+            
+            // Password is not shown or edited
+            serverPasswordInput.required = false;
+            passwordContainer.style.display = 'none';
+
+            // Personalization fields
+            serverIconInput.value = server.icon || '🚀';
+            serverColorInput.value = server.color || '#3498db';
+            serverVisibilityToggle.checked = server.visibility === 'public';
+            
+            modalTitle.textContent = `ویرایش سرور: ${server.name}`;
+            submitBtn.textContent = 'ذخیره تغییرات';
+            
+            if (server.type === 'html') {
+                htmlContentInput.value = server.content || '';
+                htmlPreview.srcdoc = server.content || '';
+            } else {
+                jsonContentInput.value = JSON.stringify(server.content || {}, null, 2);
+            }
+            toggleEditorView(server.type || 'json');
+            
+            if (server.visibility === 'public') {
+                if (server.type === 'html') {
+                    const realLink = `https://abolfazl140122.github.io/serverJson/view.html?id=${server.id}`;
+                    const displayLink = `Norix://server?id=${server.id}`;
+                    serverLinkInput.value = displayLink;
+                    serverLinkInput.onclick = () => window.open(realLink, '_blank');
+                } else {
+                    const realLink = `${firebaseConfig.databaseURL}/servers/${server.id}.json`;
+                    const displayLink = `Norix://json?id=${server.id}`;
+                    serverLinkInput.value = displayLink;
+                    serverLinkInput.onclick = () => window.open(realLink, '_blank');
+                }
+                serverLinkWrapper.style.display = 'block';
+            } else {
+                serverLinkWrapper.style.display = 'none';
+                serverLinkInput.onclick = null; // Clear handler
+            }
+            
+            deleteBtn.style.display = 'block';
+            modal.classList.add('visible');
+        }
+
+        function closeModal() {
+            modal.classList.remove('visible');
+            modalMessage.textContent = '';
+        }
+        
+        // --- تابع کمکی برای پاکسازی داده‌ها برای دیتابیس عمومی ---
         function sanitizeForPublicDb(server) {
             return {
                 type: server.type,
                 name: server.name,
                 icon: server.icon,
-                content: server.content,
-                // Do NOT include password, visibility, color etc.
+                content: server.content || (server.type === 'html' ? '' : {})
             };
         }
-        
-        async function isSlugUnique(slug, serverId) {
-            if (!slug) return true;
-            const slugDoc = await db.collection('slugs').doc(slug).get();
-            if (!slugDoc.exists) return true; // Slug is not taken
-            // Slug exists, check if it belongs to the current server being edited
-            return slugDoc.data().serverId === serverId;
-        }
 
+        // --- مدیریت ارسال فرم (ساخت یا ویرایش) ---
         async function handleFormSubmit() {
             submitBtn.disabled = true;
             modalMessage.textContent = '';
             const serverId = serverIdInput.value;
-            
             try {
-                // --- Basic Validation ---
-                const serverName = serverNameInput.value.trim();
-                if (!serverName) throw new Error('نام سرور نمی‌تواند خالی باشد.');
-                const isPublic = serverVisibilityToggle.checked;
-                const slug = serverSlugInput.value.trim();
-                if (isPublic && slug && !/^[a-zA-Z0-9-]+$/.test(slug)) {
-                    throw new Error('آدرس سفارشی فقط می‌تواند شامل حروف انگلیسی، اعداد و خط تیره (-) باشد.');
-                }
-                
-                if (isPublic && slug && !(await isSlugUnique(slug, serverId))) {
-                     throw new Error('این آدرس سفارشی قبلا استفاده شده است.');
-                }
-                
-                // --- Collect Content ---
-                let content;
-                const serverType = serverTypeSelect.value;
-                if (serverType === 'html') {
-                    content = {
-                        html: htmlCodeEditor.getValue(),
-                        css: cssCodeEditor.getValue(),
-                        js: jsCodeEditor.getValue()
-                    };
-                } else { // JSON
-                    content = {};
-                    const pathItems = jsonPathsWrapper.querySelectorAll('.json-path-item');
-                    let isValid = true;
-                    pathItems.forEach((item, index) => {
-                        const path = item.querySelector('.json-path-input').value.trim();
-                        if (!path) {
-                            isValid = false;
-                            throw new Error(`مسیر شماره ${index + 1} نمی‌تواند خالی باشد.`);
-                        }
-                        const editorId = Object.keys(jsonPathEditors)[index];
-                        const jsonText = jsonPathEditors[editorId].getValue().trim();
-                        try {
-                           content[path] = jsonText ? JSON.parse(jsonText) : {};
-                        } catch (e) {
-                           isValid = false;
-                           throw new Error(`محتوای JSON در مسیر "${path}" معتبر نیست.`);
-                        }
-                    });
-                     if (!isValid) return; // Stop execution if validation failed in loop
-                }
-
-                // --- Create or Update ---
                 if (serverId) {
-                    await updateServer(serverId, serverName, slug, isPublic, content);
+                    await updateServer(serverId);
                 } else {
-                    const serverPassword = serverPasswordInput.value.trim();
-                    if (!serverPassword) throw new Error('رمز عبور سرور الزامی است.');
-                    await createNewServer(serverName, serverPassword, serverType, slug, isPublic, content);
+                    await createNewServer();
                 }
             } catch (error) {
                 console.error("Form submission error:", error);
@@ -822,103 +776,117 @@
             }
         }
         
-        async function createNewServer(name, password, type, slug, isPublic, content) {
+        // --- ساخت سرور جدید ---
+        async function createNewServer() {
+            const serverName = serverNameInput.value.trim();
+            const serverPassword = serverPasswordInput.value.trim();
+            if (!serverName || !serverPassword) throw new Error('نام و رمز عبور سرور الزامی است.');
+
+            const serverType = serverTypeSelect.value;
+            let content;
+            if (serverType === 'html') {
+                content = "<h1>سرور HTML جدید</h1><p>این محتوا را ویرایش کنید.</p>";
+            } else {
+                content = { message: "سرور JSON جدید با موفقیت ساخته شد." };
+            }
+
             const newServer = {
                 id: Date.now().toString(),
-                name: name,
-                password: password, // Note: Storing password directly is not recommended for production systems
-                type: type,
+                name: serverName,
+                password: serverPassword, 
+                type: serverType,
                 icon: serverIconInput.value.trim() || '🚀',
                 color: serverColorInput.value,
-                visibility: isPublic ? 'public' : 'private',
-                slug: slug,
+                visibility: serverVisibilityToggle.checked ? 'public' : 'private',
                 content: content
             };
-
-            const batch = db.batch();
+            
             const userDocRef = db.collection('users').doc(currentUser.uid);
-            batch.set(userDocRef, { servers: firebase.firestore.FieldValue.arrayUnion(newServer) }, { merge: true });
+            
+            // Start Firestore update
+            const firestorePromise = userDocRef.set({
+                servers: firebase.firestore.FieldValue.arrayUnion(newServer)
+            }, { merge: true });
 
-            if (isPublic && slug) {
-                const slugDocRef = db.collection('slugs').doc(slug);
-                batch.set(slugDocRef, { serverId: newServer.id, owner: currentUser.uid });
-            }
-
-            await batch.commit();
-
-            if (isPublic) {
+            // Handle Realtime DB based on visibility
+            let rtdbPromise;
+            if (newServer.visibility === 'public') {
                 const publicData = sanitizeForPublicDb(newServer);
-                await rtdb.ref(`servers/${newServer.id}`).set(publicData);
-                if (slug) await rtdb.ref(`slugs/${slug}`).set(newServer.id);
+                rtdbPromise = rtdb.ref('servers/' + newServer.id).set(publicData);
+            } else {
+                rtdbPromise = Promise.resolve(); // Do nothing for private server
             }
+
+            await Promise.all([firestorePromise, rtdbPromise]);
             
             closeModal();
             await loadUserServersAndPreferences();
         }
 
-        async function updateServer(serverId, newName, newSlug, isPublic, newContent) {
+        // --- به‌روزرسانی سرور موجود ---
+        async function updateServer(serverId) {
             const serverIndex = userServers.findIndex(s => s.id === serverId);
-            if (serverIndex === -1) throw new Error('سرور یافت نشد.');
+            if (serverIndex === -1) throw new Error('سرور مورد نظر یافت نشد.');
 
-            const oldServer = { ...userServers[serverIndex] };
-            const updatedServer = { ...oldServer, 
-                name: newName,
-                icon: serverIconInput.value.trim() || '🚀',
-                color: serverColorInput.value,
-                visibility: isPublic ? 'public' : 'private',
-                slug: newSlug,
-                content: newContent
-            };
+            const serverToUpdate = { ...userServers[serverIndex] };
+
+            serverToUpdate.name = serverNameInput.value.trim();
+            if (!serverToUpdate.name) throw new Error('نام سرور نمی‌تواند خالی باشد.');
             
-            userServers[serverIndex] = updatedServer;
+            serverToUpdate.icon = serverIconInput.value.trim() || '🚀';
+            serverToUpdate.color = serverColorInput.value;
+            serverToUpdate.visibility = serverVisibilityToggle.checked ? 'public' : 'private';
 
-            const batch = db.batch();
+            // Update content based on type
+            if (serverToUpdate.type === 'html') {
+                serverToUpdate.content = htmlContentInput.value;
+            } else {
+                const jsonText = jsonContentInput.value.trim();
+                try {
+                    serverToUpdate.content = jsonText ? JSON.parse(jsonText) : {};
+                } catch (e) {
+                    throw new Error('محتوای JSON وارد شده معتبر نیست.');
+                }
+            }
+            
+            // Update the server in the local array
+            userServers[serverIndex] = serverToUpdate;
+
             const userDocRef = db.collection('users').doc(currentUser.uid);
-            batch.update(userDocRef, { servers: userServers });
 
-            // Slug management
-            if (oldServer.slug && oldServer.slug !== newSlug) {
-                batch.delete(db.collection('slugs').doc(oldServer.slug));
+            // Start Firestore update
+            const firestorePromise = userDocRef.update({ servers: userServers });
+
+            // Handle Realtime DB
+            let rtdbPromise;
+            if (serverToUpdate.visibility === 'public') {
+                const publicData = sanitizeForPublicDb(serverToUpdate);
+                rtdbPromise = rtdb.ref('servers/' + serverId).set(publicData);
+            } else {
+                // If it's now private, remove it from public DB
+                rtdbPromise = rtdb.ref('servers/' + serverId).remove();
             }
-            if (newSlug && oldServer.slug !== newSlug) {
-                batch.set(db.collection('slugs').doc(newSlug), { serverId: serverId, owner: currentUser.uid });
-            }
-            
-            await batch.commit();
-            
-            // RTDB management
-            if (isPublic) {
-                await rtdb.ref(`servers/${serverId}`).set(sanitizeForPublicDb(updatedServer));
-                if (oldServer.slug && oldServer.slug !== newSlug) await rtdb.ref(`slugs/${oldServer.slug}`).remove();
-                if (newSlug) await rtdb.ref(`slugs/${newSlug}`).set(serverId);
-            } else { // Server became private
-                await rtdb.ref(`servers/${serverId}`).remove();
-                if (oldServer.slug) await rtdb.ref(`slugs/${oldServer.slug}`).remove();
-            }
+
+            await Promise.all([firestorePromise, rtdbPromise]);
             
             closeModal();
             await loadUserServersAndPreferences();
         }
 
+        // --- حذف سرور ---
         async function deleteServer() {
             const serverId = serverIdInput.value;
-            if (!confirm(`آیا از حذف سرور "${serverNameInput.value}" مطمئن هستید؟`)) return;
+            if (!confirm(`آیا از حذف سرور "${serverNameInput.value}" مطمئن هستید؟ این عمل غیرقابل بازگشت است.`)) return;
 
-            const serverToDelete = userServers.find(s => s.id === serverId);
-            const updatedServers = userServers.filter(s => s.id !== serverId);
-            
+            const updatedServers = userServers.filter(server => server.id !== serverId);
             const userDocRef = db.collection('users').doc(currentUser.uid);
 
             try {
-                const batch = db.batch();
-                batch.update(userDocRef, { servers: updatedServers });
-                if (serverToDelete.slug) {
-                    batch.delete(db.collection('slugs').doc(serverToDelete.slug));
-                }
-                await batch.commit();
-                
-                await rtdb.ref('servers/' + serverId).remove();
-                if (serverToDelete.slug) await rtdb.ref('slugs/' + serverToDelete.slug).remove();
+                // Delete from both Firestore and Realtime Database
+                await Promise.all([
+                    userDocRef.update({ servers: updatedServers }),
+                    rtdb.ref('servers/' + serverId).remove()
+                ]);
 
                 closeModal();
                 await loadUserServersAndPreferences();
@@ -928,132 +896,17 @@
             }
         }
         
-        async function duplicateServer(serverId) {
-             const originalServer = userServers.find(s => s.id === serverId);
-             if (!originalServer) return;
-             
-             const newServer = { ...originalServer,
-                id: Date.now().toString(),
-                name: `${originalServer.name} (کپی)`,
-                slug: '', // Slug must be unique, so we clear it
-                visibility: 'private' // Default to private for safety
-             };
-             
-             try {
-                const userDocRef = db.collection('users').doc(currentUser.uid);
-                await userDocRef.update({
-                    servers: firebase.firestore.FieldValue.arrayUnion(newServer)
-                });
-                await loadUserServersAndPreferences();
-             } catch (error) {
-                 console.error("Error duplicating server:", error);
-                 alert("خطا در تکثیر سرور.");
-             }
-        }
-
-        // --- Theme Management ---
-        function applyTheme(theme) {
-            const isDark = theme === 'dark';
-            document.body.classList.toggle('dark-theme', isDark);
-            themeToggleBtn.textContent = isDark ? '🌙' : '☀️';
-            // Update CodeMirror themes
-            const editorTheme = isDark ? 'dracula' : 'default';
-            [htmlCodeEditor, cssCodeEditor, jsCodeEditor, ...Object.values(jsonPathEditors)].forEach(editor => {
-                if (editor) editor.setOption('theme', editorTheme);
-            });
-        }
-        
-        async function saveThemePreference(theme) {
-            if (!currentUser) return;
-            await db.collection('users').doc(currentUser.uid).set({ preferences: { theme: theme } }, { merge: true });
-        }
-
-        // --- Event Listeners ---
+        // --- رویدادها ---
         addServerBtn.addEventListener('click', openModalForCreate);
         cancelBtn.addEventListener('click', closeModal);
         submitBtn.addEventListener('click', handleFormSubmit);
         deleteBtn.addEventListener('click', deleteServer);
-        logoutBtn.addEventListener('click', () => auth.signOut());
-        themeToggleBtn.addEventListener('click', () => {
-            const newTheme = document.body.classList.contains('dark-theme') ? 'light' : 'dark';
-            applyTheme(newTheme);
-            saveThemePreference(newTheme);
-        });
-        
-        searchInput.addEventListener('input', renderServerList);
-        filterType.addEventListener('change', renderServerList);
-        filterVisibility.addEventListener('change', renderServerList);
-        serverTypeSelect.addEventListener('change', () => toggleEditorView(serverTypeSelect.value));
-        serverVisibilityToggle.addEventListener('change', (e) => {
-            slugContainer.style.display = e.target.checked ? 'block' : 'none';
-        });
-        templateSelect.addEventListener('change', applyTemplate);
-        
-        // HTML Editor Tabs
-        document.querySelector('.html-editor-tabs').addEventListener('click', (e) => {
-            if (e.target.matches('.tab-btn')) {
-                const tab = e.target.dataset.tab;
-                document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
-                e.target.classList.add('active');
-                document.getElementById(`tab-${tab}`).classList.add('active');
-                refreshAllEditors();
+        logoutBtn.addEventListener('click', () => {
+            if (confirm("آیا برای خروج از حساب کاربری خود مطمئن هستید؟")) {
+                auth.signOut();
             }
         });
-        
-        addJsonPathBtn.addEventListener('click', () => addJsonPath('', {}));
 
-        /*
-        =======================================================================
-        === راهنمای قوانین امنیتی (SECURITY RULES) برای FIREBASE ===
-        =======================================================================
-        
-        **مهم:** برای محافظت از داده‌های کاربران، باید این قوانین را در کنسول Firebase خود تنظیم کنید.
-        بدون این قوانین، هر کسی می‌تواند داده‌های شما را بخواند یا تغییر دهد.
-
-        --- FIRESTORE RULES (فایل firestore.rules) ---
-        
-        rules_version = '2';
-        service cloud.firestore {
-          match /databases/{database}/documents {
-        
-            // کاربران فقط می‌توانند سند مربوط به خودشان را بخوانند و بنویسند
-            match /users/{userId} {
-              allow read, update, delete: if request.auth != null && request.auth.uid == userId;
-              allow create: if request.auth != null;
-            }
-        
-            // اسلاگ‌ها (آدرس‌های سفارشی) باید قابل خواندن توسط همه باشند تا بتوان از تکراری بودنشان جلوگیری کرد
-            // اما فقط توسط کاربر مالک قابل ساخت و حذف هستند
-            match /slugs/{slug} {
-              allow read: if true;
-              allow create: if request.auth != null && request.resource.data.owner == request.auth.uid;
-              allow delete: if request.auth != null && resource.data.owner == request.auth.uid;
-            }
-          }
-        }
-
-        --- REALTIME DATABASE RULES (فایل rules.json) ---
-        
-        {
-          "rules": {
-            // سرورهای عمومی توسط همه قابل خواندن هستند
-            "servers": {
-              ".read": true,
-              "$serverId": {
-                // فقط کلاینت авторизованный می‌تواند بنویسد (این قانون باید دقیق‌تر شود، مثلا با Cloud Functions)
-                // برای امنیت بیشتر، نوشتن مستقیم از کلاینت را غیرفعال کنید و از Cloud Functions استفاده کنید
-                ".write": "auth != null" 
-              }
-            },
-            // اسلاگ‌های عمومی هم توسط همه قابل خواندن هستند
-            "slugs": {
-                ".read": true,
-                ".write": "auth != null" // مانند بالا، برای امنیت بیشتر از Cloud Functions استفاده شود
-            }
-          }
-        }
-        =======================================================================
-        */
     </script>
 </body>
 </html>
