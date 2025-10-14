@@ -5,117 +5,285 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>صفحه اصلی - Norix</title>
     <style>
+        /* متغیرهای اصلی برای رنگ‌ها و استایل‌ها */
         :root {
             --primary-color: #3498db;
+            --primary-hover-color: #2980b9;
             --danger-color: #e74c3c;
+            --danger-hover-color: #c0392b;
             --light-gray: #f4f7f6;
+            --border-color: #ddd;
             --dark-text: #333;
             --light-text: #777;
+            --white-color: #fff;
+            --shadow-light: rgba(0,0,0,0.08);
+            --shadow-medium: rgba(0,0,0,0.1);
         }
 
+        /* استایل‌های پایه بدنه و فونت */
         body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background-color: var(--light-gray);
+            color: var(--dark-text);
+            line-height: 1.6;
         }
 
+        /* هدر صفحه */
         .header {
-            background-color: #fff; padding: 15px 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex;
-            justify-content: space-between; align-items: center;
+            background-color: var(--white-color);
+            padding: 15px 25px;
+            box-shadow: 0 2px 5px var(--shadow-medium);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .header-title { font-size: 24px; font-weight: bold; color: var(--dark-text); }
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
         #logout-btn {
-            border: 1px solid var(--danger-color); color: var(--danger-color);
-            padding: 8px 12px; border-radius: 6px; cursor: pointer;
-            font-weight: 500; transition: all 0.3s ease; background: none;
+            border: 1px solid var(--danger-color);
+            color: var(--danger-color);
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            background: none;
         }
-        #logout-btn:hover { background-color: var(--danger-color); color: #fff; }
+        #logout-btn:hover {
+            background-color: var(--danger-color);
+            color: var(--white-color);
+        }
 
-        .main-container { padding: 20px; height: calc(100vh - 75px); box-sizing: border-box; position: relative; }
-        #server-list { height: 100%; overflow-y: auto; padding-bottom: 80px; }
+        /* کانتینر اصلی محتوا */
+        .main-container {
+            padding: 25px;
+            height: calc(100vh - 75px);
+            box-sizing: border-box;
+            position: relative;
+        }
+        #server-list {
+            height: 100%;
+            overflow-y: auto;
+            padding-bottom: 90px;
+        }
 
+        /* کارت نمایش هر سرور */
         .server-card {
-            background-color: #fff; padding: 20px; border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 15px;
-            display: flex; justify-content: space-between; align-items: center;
-            cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background-color: var(--white-color);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px var(--shadow-light);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .server-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
-        .server-name { font-size: 18px; font-weight: 500; color: #444; }
+        .server-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 20px var(--shadow-medium);
+        }
+        .server-name {
+            font-size: 18px;
+            font-weight: 500;
+        }
 
-        #no-servers-message { text-align: center; margin-top: 50px; color: var(--light-text); font-size: 16px; }
+        /* پیام عدم وجود سرور */
+        #no-servers-message {
+            text-align: center;
+            margin-top: 50px;
+            color: var(--light-text);
+            font-size: 16px;
+        }
 
+        /* دکمه افزودن سرور جدید */
         #add-server-btn {
-            position: fixed; bottom: 30px; left: 30px; width: 60px; height: 60px;
-            background-color: var(--primary-color); color: white; border: none;
-            border-radius: 50%; font-size: 36px; line-height: 60px; text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2); cursor: pointer; transition: background-color 0.3s ease;
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            border: none;
+            border-radius: 50%;
+            font-size: 36px;
+            line-height: 60px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            user-select: none;
         }
-        #add-server-btn:hover { background-color: #2980b9; }
+        #add-server-btn:hover {
+            background-color: var(--primary-hover-color);
+        }
 
+        /* لایه مودال */
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5); display: flex; justify-content: center;
-            align-items: center; opacity: 0; visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease; z-index: 1000;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 1000;
         }
-        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
         .modal-content {
-            background-color: #fff; padding: 30px; border-radius: 12px;
-            width: 90%; max-width: 500px; box-sizing: border-box;
-            max-height: 90vh; display: flex; flex-direction: column;
+            background-color: var(--white-color);
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-sizing: border-box;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
         }
-        .modal-body { overflow-y: auto; }
-        .modal-title { font-size: 22px; font-weight: 600; margin-bottom: 25px; }
+        .modal-body {
+            overflow-y: auto;
+        }
+        .modal-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
 
-        .input-group { margin-bottom: 20px; text-align: right; }
-        .input-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+        /* استایل فرم‌های داخل مودال */
+        .input-group {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
         .input-group input, .input-group textarea {
-            width: 100%; padding: 12px; border: 1px solid #ddd;
-            border-radius: 8px; box-sizing: border-box; font-size: 16px; font-family: inherit;
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            font-family: inherit;
         }
         #json-content-input {
-            min-height: 150px; direction: ltr; text-align: left;
+            min-height: 150px;
+            direction: ltr;
+            text-align: left;
             font-family: 'Courier New', Courier, monospace;
+            resize: vertical;
         }
         .server-link-container {
-            margin-top: 15px; background-color: #eef1f3; padding: 10px; border-radius: 6px;
+            margin-top: 15px;
+            background-color: #eef1f3;
+            padding: 10px;
+            border-radius: 6px;
+        }
+        .server-link-container label {
+            font-size: 14px;
+            color: var(--dark-text);
         }
         .server-link-container input {
-            width: 100%; border: none; background: none; font-size: 14px;
-            color: var(--primary-color); direction: ltr;
+            width: 100%;
+            border: none;
+            background: none;
+            font-size: 14px;
+            color: var(--primary-color);
+            direction: ltr;
+            cursor: pointer;
+        }
+        
+        /* بخش دکمه‌های مودال */
+        .modal-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        .modal-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        #submit-btn {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            flex-grow: 1;
+        }
+        #submit-btn:hover {
+             background-color: var(--primary-hover-color);
+        }
+        #cancel-btn {
+            background-color: #f1f1f1;
+            color: #555;
+            flex-grow: 1;
+        }
+        #delete-btn {
+            background-color: transparent;
+            color: var(--danger-color);
+            font-weight: 500;
         }
 
-        .modal-actions { display: flex; gap: 10px; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
-        .modal-btn { flex-grow: 1; padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
-        #submit-btn { background-color: var(--primary-color); color: white; }
-        #cancel-btn { background-color: #f1f1f1; color: #555; }
-        #delete-btn { background-color: transparent; color: var(--danger-color); flex-grow: 0; padding: 0; font-weight: normal; }
-
-        #modal-message { color: var(--danger-color); min-height: 20px; margin-top: 15px; font-weight: 500; }
+        /* پیام خطا در مودال */
+        #modal-message {
+            color: var(--danger-color);
+            min-height: 20px;
+            margin-top: 15px;
+            font-weight: 500;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
+    <header class="header">
         <h1 class="header-title">سرورهای من</h1>
         <button id="logout-btn">خروج</button>
-    </div>
+    </header>
 
-    <div class="main-container">
+    <main class="main-container">
         <div id="server-list"></div>
         <p id="no-servers-message" style="display: none;">هنوز سروری نساخته‌اید. برای شروع روی علامت + کلیک کنید.</p>
-    </div>
+    </main>
 
-    <button id="add-server-btn">+</button>
+    <button id="add-server-btn" title="ساخت سرور جدید">+</button>
 
     <!-- مودال داینامیک برای ساخت و ویرایش سرور -->
     <div id="server-modal" class="modal-overlay">
         <div class="modal-content">
             <h2 id="modal-title" class="modal-title">ساخت سرور جدید</h2>
             <div class="modal-body">
-                <form id="server-form">
+                <form id="server-form" onsubmit="return false;">
                     <input type="hidden" id="server-id-input">
                     <div class="input-group">
                         <label for="server-name-input">نام سرور</label>
@@ -126,14 +294,14 @@
                         <input type="password" id="server-password-input">
                     </div>
 
-                    <!-- بخش ویرایشگر JSON و لینک (فقط در حالت ویرایش نمایش داده می‌شود) -->
+                    <!-- بخش ویرایشگر JSON و لینک (فقط در حالت ویرایش) -->
                     <div id="edit-fields" style="display: none;">
                         <div class="input-group">
                             <label for="json-content-input">محتوای JSON</label>
                             <textarea id="json-content-input" placeholder='{ "key": "value" }'></textarea>
                         </div>
                         <div class="server-link-container">
-                            <label>لینک عمومی سرور</label>
+                            <label>لینک عمومی سرور (برای کپی کلیک کنید)</label>
                             <input type="text" id="server-link-input" readonly>
                         </div>
                     </div>
@@ -142,11 +310,9 @@
                 </form>
             </div>
             <div class="modal-actions">
-                <button type="button" id="delete-btn" class="modal-btn" style="display: none;">حذف سرور</button>
-                <div style="flex-grow: 1; display: flex; gap: 10px;">
-                    <button type="button" id="cancel-btn" class="modal-btn">لغو</button>
-                    <button type="button" id="submit-btn" class="modal-btn">ساختن</button>
-                </div>
+                <button type="button" id="delete-btn" class="modal-btn" style="display: none;">حذف</button>
+                <button type="button" id="cancel-btn" class="modal-btn">لغو</button>
+                <button type="button" id="submit-btn" class="modal-btn">ساختن</button>
             </div>
         </div>
     </div>
@@ -155,9 +321,10 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script> <!-- SDK پایگاه داده Realtime -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <script>
+        // --- پیکربندی Firebase ---
         const firebaseConfig = {
             apiKey: "AIzaSyAT8CDJoCOm8XVo62y-3CgS1Fqabdq2tjQ",
             authDomain: "serverjson-a2107.firebaseapp.com",
@@ -166,15 +333,16 @@
             messagingSenderId: "1058313915119",
             appId: "1:1058313915119:web:4a967e4c8c401f1762a91a",
             measurementId: "G-T3Y95SVYPM",
-            databaseURL: "https://serverjson-a2107-default-rtdb.firebaseio.com" // آدرس پایگاه داده Realtime
+            databaseURL: "https://serverjson-a2107-default-rtdb.firebaseio.com"
         };
 
+        // --- مقداردهی اولیه سرویس‌های Firebase ---
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const rtdb = firebase.database(); // مقداردهی اولیه Realtime Database
+        const rtdb = firebase.database();
 
-        // عناصر DOM
+        // --- انتخاب عناصر DOM ---
         const serverList = document.getElementById('server-list');
         const addServerBtn = document.getElementById('add-server-btn');
         const modal = document.getElementById('server-modal');
@@ -194,30 +362,31 @@
         const deleteBtn = document.getElementById('delete-btn');
 
         let currentUser;
-        let userServers = [];
+        let userServers = []; // کش کردن اطلاعات سرورهای کاربر
 
-        // بررسی وضعیت ورود کاربر
+        // --- مدیریت وضعیت ورود کاربر ---
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
                 loadUserServers();
             } else {
-                window.location.href = './Login.html';
+                window.location.href = './Login.html'; // یا صفحه لاگین شما
             }
         });
         
-        // بارگذاری و نمایش سرورهای کاربر
+        // --- بارگذاری و نمایش سرورهای کاربر از Firestore ---
         async function loadUserServers() {
             serverList.innerHTML = '';
             try {
                 const userDocRef = db.collection('users').doc(currentUser.uid);
                 const doc = await userDocRef.get();
-                if (doc.exists) {
-                    userServers = doc.data().servers || [];
+                if (doc.exists && doc.data().servers) {
+                    userServers = doc.data().servers;
                     noServersMessage.style.display = userServers.length === 0 ? 'block' : 'none';
-                    userServers.forEach(server => displayServerCard(server));
+                    userServers.forEach(displayServerCard);
                 } else {
                      noServersMessage.style.display = 'block';
+                     userServers = [];
                 }
             } catch (error) {
                 console.error("Error loading servers:", error);
@@ -225,36 +394,40 @@
             }
         }
         
+        // --- ایجاد کارت برای هر سرور ---
         function displayServerCard(server) {
             const card = document.createElement('div');
             card.className = 'server-card';
+            card.dataset.serverId = server.id;
             card.innerHTML = `<span class="server-name">${server.name}</span>`;
             card.addEventListener('click', () => openModalForEdit(server));
             serverList.appendChild(card);
         }
 
-        // باز کردن مودال برای ساخت سرور جدید
+        // --- مدیریت مودال (باز و بسته کردن) ---
         function openModalForCreate() {
             serverForm.reset();
             serverIdInput.value = '';
             modalTitle.textContent = 'ساخت سرور جدید';
             submitBtn.textContent = 'ساختن';
             serverPasswordInput.required = true;
+            serverPasswordInput.style.display = 'block';
+            serverPasswordInput.parentElement.style.display = 'block';
             editFields.style.display = 'none';
             deleteBtn.style.display = 'none';
             modal.classList.add('visible');
         }
 
-        // باز کردن مودال برای ویرایش سرور موجود
         function openModalForEdit(server) {
             serverForm.reset();
             serverIdInput.value = server.id;
             serverNameInput.value = server.name;
-            serverPasswordInput.required = false; // رمز عبور در حالت ویرایش اجباری نیست
-            modalTitle.textContent = 'ویرایش سرور';
+            serverPasswordInput.required = false;
+            serverPasswordInput.style.display = 'none'; // رمز عبور در حالت ویرایش پنهان است
+            serverPasswordInput.parentElement.style.display = 'none';
+            modalTitle.textContent = `ویرایش سرور: ${server.name}`;
             submitBtn.textContent = 'ذخیره تغییرات';
             
-            // نمایش محتوای JSON با فرمت زیبا
             jsonContentInput.value = JSON.stringify(server.content || {}, null, 2);
             serverLinkInput.value = `${firebaseConfig.databaseURL}/servers/${server.id}.json`;
             
@@ -263,118 +436,148 @@
             modal.classList.add('visible');
         }
 
-        // بستن مودال
         function closeModal() {
             modal.classList.remove('visible');
             modalMessage.textContent = '';
         }
 
-        // مدیریت ارسال فرم (ساخت یا ویرایش)
+        // --- مدیریت ارسال فرم (ساخت یا ویرایش) ---
         async function handleFormSubmit() {
+            submitBtn.disabled = true;
+            modalMessage.textContent = '';
+
             const serverId = serverIdInput.value;
-            if (serverId) {
-                await updateServer(serverId);
-            } else {
-                await createNewServer();
+            try {
+                if (serverId) {
+                    await updateServer(serverId);
+                } else {
+                    await createNewServer();
+                }
+            } catch (error) {
+                console.error("Form submission error:", error);
+                modalMessage.textContent = error.message || 'یک خطای ناشناخته رخ داد.';
+            } finally {
+                submitBtn.disabled = false;
             }
         }
         
-        // ساخت سرور جدید
+        // --- ساخت سرور جدید ---
         async function createNewServer() {
             const serverName = serverNameInput.value.trim();
             const serverPassword = serverPasswordInput.value.trim();
 
             if (!serverName || !serverPassword) {
-                modalMessage.textContent = 'نام و رمز عبور سرور الزامی است.';
-                return;
+                throw new Error('نام و رمز عبور سرور الزامی است.');
             }
 
             const newServer = {
-                id: Date.now().toString(), // شناسه منحصر به فرد بر اساس زمان
+                id: Date.now().toString(),
                 name: serverName,
-                password: serverPassword,
-                content: {} // محتوای JSON اولیه خالی
+                password: serverPassword, // نکته: ذخیره رمز عبور به صورت متن ساده امن نیست.
+                content: { initial: true } // محتوای اولیه برای جلوگیری از حذف نود در RTDB
             };
             
-            try {
-                const userDocRef = db.collection('users').doc(currentUser.uid);
-                await userDocRef.set({
+            const userDocRef = db.collection('users').doc(currentUser.uid);
+            
+            // همزمان در Firestore و Realtime DB می‌نویسیم
+            await Promise.all([
+                userDocRef.set({
                     servers: firebase.firestore.FieldValue.arrayUnion(newServer)
-                }, { merge: true });
-                
-                closeModal();
-                loadUserServers();
-            } catch (error) {
-                console.error("Error creating server:", error);
-                modalMessage.textContent = 'خطا در ساخت سرور.';
-            }
+                }, { merge: true }),
+                rtdb.ref('servers/' + newServer.id).set(newServer.content)
+            ]);
+            
+            closeModal();
+            await loadUserServers(); // بارگذاری مجدد لیست
         }
 
-        // به‌روزرسانی سرور موجود
+        // --- به‌روزرسانی سرور موجود ---
         async function updateServer(serverId) {
             const serverName = serverNameInput.value.trim();
+            const jsonText = jsonContentInput.value.trim();
             let newJsonContent;
 
+            if (!serverName) {
+                throw new Error('نام سرور نمی‌تواند خالی باشد.');
+            }
+
             // اعتبارسنجی محتوای JSON
-            try {
-                newJsonContent = JSON.parse(jsonContentInput.value);
-            } catch (e) {
-                modalMessage.textContent = 'محتوای JSON وارد شده معتبر نیست.';
-                return;
+            if (!jsonText) {
+                newJsonContent = { message: "This server's content is empty." }; // مقدار پیش‌فرض اگر خالی باشد
+            } else {
+                try {
+                    newJsonContent = JSON.parse(jsonText);
+                } catch (e) {
+                    throw new Error('محتوای JSON وارد شده معتبر نیست.');
+                }
+            }
+
+            // اطمینان از اینکه مقدار null ذخیره نشود (که باعث حذف نود در RTDB می‌شود)
+            if (newJsonContent === null) {
+                throw new Error('محتوای JSON نمی‌تواند null باشد. برای خالی کردن از {} استفاده کنید.');
             }
             
-            const updatedServers = userServers.map(server => {
-                if (server.id === serverId) {
-                    return { ...server, name: serverName, content: newJsonContent };
-                }
-                return server;
-            });
+            // پیدا کردن سرور و آپدیت آن در کش داخلی
+            const serverIndex = userServers.findIndex(s => s.id === serverId);
+            if (serverIndex === -1) throw new Error('سرور مورد نظر یافت نشد.');
+            
+            userServers[serverIndex].name = serverName;
+            userServers[serverIndex].content = newJsonContent;
 
-            try {
-                // به‌روزرسانی در Firestore
-                const userDocRef = db.collection('users').doc(currentUser.uid);
-                await userDocRef.update({ servers: updatedServers });
+            const userDocRef = db.collection('users').doc(currentUser.uid);
 
-                // به‌روزرسانی در Realtime Database
-                await rtdb.ref('servers/' + serverId).set(newJsonContent);
-                
-                closeModal();
-                loadUserServers();
-            } catch (error) {
-                console.error("Error updating server:", error);
-                modalMessage.textContent = 'خطا در ذخیره تغییرات.';
-            }
+            // آپدیت همزمان هر دو پایگاه داده
+            await Promise.all([
+                userDocRef.update({ servers: userServers }),
+                rtdb.ref('servers/' + serverId).set(newJsonContent)
+            ]);
+            
+            closeModal();
+            await loadUserServers(); // بارگذاری مجدد لیست
         }
 
-        // حذف سرور
+        // --- حذف سرور ---
         async function deleteServer() {
             const serverId = serverIdInput.value;
-            if (!confirm(`آیا از حذف سرور "${serverNameInput.value}" مطمئن هستید؟`)) return;
+            if (!confirm(`آیا از حذف سرور "${serverNameInput.value}" مطمئن هستید؟ این عمل غیرقابل بازگشت است.`)) return;
 
             const updatedServers = userServers.filter(server => server.id !== serverId);
+            const userDocRef = db.collection('users').doc(currentUser.uid);
 
             try {
-                // حذف از Firestore
-                const userDocRef = db.collection('users').doc(currentUser.uid);
-                await userDocRef.update({ servers: updatedServers });
-
-                // حذف از Realtime Database
-                await rtdb.ref('servers/' + serverId).remove();
+                // حذف همزمان از Firestore و Realtime Database
+                await Promise.all([
+                    userDocRef.update({ servers: updatedServers }),
+                    rtdb.ref('servers/' + serverId).remove()
+                ]);
 
                 closeModal();
-                loadUserServers();
+                await loadUserServers();
             } catch (error) {
                 console.error("Error deleting server:", error);
                 alert('خطا در حذف سرور.');
             }
         }
-
-        // رویدادها
+        
+        // --- رویدادها ---
         addServerBtn.addEventListener('click', openModalForCreate);
         cancelBtn.addEventListener('click', closeModal);
         submitBtn.addEventListener('click', handleFormSubmit);
         deleteBtn.addEventListener('click', deleteServer);
-        logoutBtn.addEventListener('click', () => auth.signOut());
+        logoutBtn.addEventListener('click', () => {
+            if (confirm("آیا برای خروج از حساب کاربری خود مطمئن هستید؟")) {
+                auth.signOut();
+            }
+        });
+
+        // کپی کردن لینک در کلیپ‌بورد
+        serverLinkInput.addEventListener('click', () => {
+            navigator.clipboard.writeText(serverLinkInput.value).then(() => {
+                alert('لینک در کلیپ‌بورد کپی شد!');
+            }, () => {
+                alert('خطا در کپی کردن لینک.');
+            });
+        });
 
     </script>
 </body>
