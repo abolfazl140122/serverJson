@@ -226,12 +226,14 @@
 
                 console.log('User data saved to Firestore.');
 
-                // نمایش پیام موفقیت
-                messageElement.textContent = 'حساب کاربری با موفقیت ساخته شد! اکنون می‌توانید وارد شوید.';
+                // نمایش پیام موفقیت و آماده‌سازی برای انتقال
+                messageElement.textContent = 'حساب کاربری با موفقیت ساخته شد! در حال انتقال به صفحه اصلی...';
                 messageElement.classList.add('message-success');
 
-                // اینجا می‌توانید کاربر را به صفحه داشبورد هدایت کنید
-                // setTimeout(() => { window.location.href = 'dashboard.html'; }, 2000);
+                // هدایت کاربر به صفحه اصلی پس از یک تاخیر کوتاه
+                setTimeout(() => {
+                    window.location.href = './Home page.html';
+                }, 1500); // 1.5 ثانیه تاخیر
 
             } catch (error) {
                 // مدیریت خطاها
