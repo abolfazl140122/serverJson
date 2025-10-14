@@ -9,9 +9,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap" rel="stylesheet">
   <style>
     /*
-     * سبک‌های پایه و متغیرهای رنگی
+     * سبک‌های پایه و متغیرهای رنگی با تم FlowOS
      * این بخش شامل تعریف متغیرهای اصلی برای تم رنگی، فونت‌ها و تنظیمات اولیه صفحه است.
-     * استفاده از متغیرها به ما این امکان را می‌دهد که به راحتی تم کلی صفحه را تغییر دهیم.
     */
     :root {
       --primary-font: 'Vazirmatn', sans-serif;
@@ -32,7 +31,6 @@
 
     /*
      * بازنشانی تنظیمات پیش‌فرض مرورگر
-     * برای اطمینان از نمایش یکسان در تمامی مرورگرها، استایل‌های پیش‌فرض را بازنشانی می‌کنیم.
     */
     *,
     *::before,
@@ -67,7 +65,6 @@
 
     /*
      * انیمیشن پس‌زمینه گرادینت
-     * این انیمیشن به آرامی رنگ‌های پس‌زمینه را جابجا می‌کند.
     */
     @keyframes gradientBG {
       0% { background-position: 0% 50%; }
@@ -76,20 +73,55 @@
     }
 
     /*
-     * کانتینر اصلی
-     * این کانتینر برای دربرگرفتن کارت اصلی و ایجاد فضای مناسب استفاده می‌شود.
+     * بخش بارگذاری (Loader)
+     * این بخش تا زمان دریافت داده از سرور نمایش داده می‌شود.
+    */
+    #loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      position: absolute;
+      z-index: 100;
+    }
+    .spinner {
+      width: 80px;
+      height: 80px;
+      border: 5px solid var(--card-border-color);
+      border-top-color: var(--glow-color-2);
+      border-radius: 50%;
+      animation: spin 1.5s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    #loader p {
+      font-size: 1.2rem;
+      color: var(--text-color-secondary);
+      font-weight: 300;
+    }
+
+    /*
+     * کانتینر اصلی برای هر دو حالت
     */
     .main-container {
       width: 100%;
-      max-width: 600px;
+      max-width: 900px;
       padding: 2rem;
       position: relative;
       z-index: 10;
     }
+    
+    /* مخفی کردن کانتینرها به صورت پیش‌فرض */
+    #private-view, #public-content {
+        display: none;
+    }
+
+
+    /* --- حالت اول: صفحه خصوصی --- */
 
     /*
      * کارت اصلی با افکت شیشه‌ای (Glassmorphism)
-     * طراحی این کارت با پس‌زمینه نیمه‌شفاف و حاشیه‌های درخشان، ظاهری مدرن ایجاد می‌کند.
     */
     .privacy-card {
       background: var(--card-background-color);
@@ -103,7 +135,9 @@
       transform-style: preserve-3d;
       transition: transform 0.5s ease, box-shadow 0.5s ease;
       position: relative;
-      overflow: hidden; /* برای جلوگیری از بیرون زدن افکت‌های نوری */
+      overflow: hidden;
+      max-width: 600px;
+      margin: auto;
     }
 
     .privacy-card:hover {
@@ -113,7 +147,6 @@
 
     /*
      * افکت نورانی متحرک در حاشیه کارت
-     * این عنصر یک خط نورانی ایجاد می‌کند که به دور کارت می‌چرخد.
     */
     .privacy-card::before {
       content: '';
@@ -146,17 +179,11 @@
         z-index: 0;
     }
 
-    /* انیمیشن چرخش نور */
     @keyframes rotating-glow {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
 
-
-    /*
-     * بخش محتوای داخلی کارت
-     * تمامی محتوای کارت در این بخش قرار می‌گیرد تا از استایل‌های والد جدا باشد.
-    */
     .card-content {
       position: relative;
       z-index: 2;
@@ -166,11 +193,6 @@
       gap: 1.5rem;
     }
 
-
-    /*
-     * آیکون قفل
-     * طراحی آیکون اصلی صفحه با گرادینت و انیمیشن جذاب
-    */
     .lock-icon-wrapper {
       width: 120px;
       height: 120px;
@@ -179,15 +201,9 @@
       place-items: center;
       background: linear-gradient(145deg, var(--icon-gradient-start), var(--icon-gradient-end));
       box-shadow: 0 0 30px rgba(162, 89, 255, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.2);
-      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       animation: float-icon 5s ease-in-out infinite;
     }
     
-    .privacy-card:hover .lock-icon-wrapper {
-      transform: scale(1.1) rotate(-5deg);
-    }
-    
-    /* انیمیشن شناور بودن آیکون */
     @keyframes float-icon {
       0% { transform: translateY(0px); }
       50% { transform: translateY(-15px); }
@@ -198,27 +214,14 @@
       width: 60px;
       height: 60px;
       fill: var(--text-color-primary);
-      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
     }
 
-
-    /*
-     * استایل عنوان اصلی
-     * با فونت سنگین و سایه متن برای خوانایی بهتر
-    */
     .title {
       font-size: 2.5rem;
       font-weight: 900;
-      margin: 0;
-      color: var(--text-color-primary);
       text-shadow: 0 4px 15px var(--shadow-color);
-      letter-spacing: -1px;
     }
 
-    /*
-     * استایل توضیحات
-     * با رنگی ملایم‌تر و فاصله‌گذاری مناسب برای خوانایی بهتر
-    */
     .subtitle {
       font-size: 1.1rem;
       line-height: 1.7;
@@ -228,10 +231,49 @@
     }
 
 
+    /* --- حالت دوم: نمایش محتوای عمومی --- */
+    
+    #public-content main {
+      background: var(--card-background-color);
+      border-radius: 20px;
+      border: 1px solid var(--card-border-color);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      padding: 2.5rem;
+      box-shadow: 0 15px 35px var(--shadow-color);
+      min-height: 300px;
+      overflow-y: auto; /* برای محتوای طولانی */
+      max-height: 80vh;
+    }
+
+    /* استایل‌دهی پایه به محتوای داخلی برای خوانایی بهتر */
+    #public-content main * {
+        color: var(--text-color-primary); /* اطمینان از خوانایی متن */
+    }
+    #public-content main h1,
+    #public-content main h2,
+    #public-content main h3 {
+        color: var(--text-color-primary);
+        margin-bottom: 1rem;
+        font-weight: 700;
+    }
+    #public-content main p {
+        color: var(--text-color-secondary);
+        line-height: 1.8;
+        margin-bottom: 1.2rem;
+    }
+    #public-content main a {
+        color: var(--glow-color-3);
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+    #public-content main a:hover {
+        color: var(--glow-color-1);
+        text-decoration: underline;
+    }
+
     /*
-     * ذرات متحرک در پس‌زمینه
-     * این بخش، ذرات درخشانی را در پس‌زمینه ایجاد می‌کند که به آرامی حرکت می‌کنند
-     * و به صفحه حس پویایی و عمق می‌بخشند.
+     * ذرات متحرک در پس‌زمینه (برای هر دو حالت)
     */
     .particles {
       position: fixed;
@@ -240,7 +282,7 @@
       width: 100%;
       height: 100%;
       z-index: 1;
-      pointer-events: none; /* برای اینکه قابل کلیک نباشند */
+      pointer-events: none;
     }
 
     .particle {
@@ -251,189 +293,27 @@
       animation: particle-animation 20s linear infinite;
     }
 
-    /* انیمیشن حرکت ذرات */
     @keyframes particle-animation {
-      from {
-        transform: translateY(0) scale(1);
-        opacity: 0.8;
-      }
-      to {
-        transform: translateY(-100vh) scale(0);
-        opacity: 0;
-      }
+      from { transform: translateY(0) scale(1); opacity: 0.8; }
+      to { transform: translateY(-100vh) scale(0); opacity: 0; }
     }
+
 
     /*
      * طراحی واکنش‌گرا (Responsive)
-     * تنظیمات برای نمایش صحیح در دستگاه‌های با صفحه نمایش کوچکتر
     */
     @media (max-width: 768px) {
       .main-container {
         padding: 1rem;
       }
-      
-      .privacy-card {
+      .privacy-card, #public-content main {
         padding: 2.5rem 1.5rem;
       }
-      
-      .title {
-        font-size: 2rem;
-      }
-      
-      .subtitle {
-        font-size: 1rem;
-      }
-
-      .lock-icon-wrapper {
-        width: 100px;
-        height: 100px;
-      }
-
-      .lock-icon-wrapper svg {
-        width: 50px;
-        height: 50px;
-      }
+      .title { font-size: 2rem; }
+      .subtitle { font-size: 1rem; }
+      .lock-icon-wrapper { width: 100px; height: 100px; }
+      .lock-icon-wrapper svg { width: 50px; height: 50px; }
     }
-    
-    /*
-     * خطوط کد اضافی برای رسیدن به هدف بیش از 1000 خط
-     * این بخش‌ها شامل جزئیات استایل‌دهی بیشتر، انیمیشن‌های پیچیده‌تر و آماده‌سازی برای
-     * حالت‌های مختلف است که به طور مستقیم در این نسخه استفاده نشده‌اند اما ساختار
-     * کد را گسترده‌تر می‌کنند. این یک روش استاندارد در پروژه‌های بزرگ برای پوشش
-     * تمام سناریوهای ممکن است.
-    */
-    
-    /* بخش استایل‌های کمکی (Utility Classes) */
-    .text-center { text-align: center; }
-    .text-bold { font-weight: 700; }
-    .mt-1 { margin-top: 0.25rem; }
-    .mt-2 { margin-top: 0.5rem; }
-    .mt-3 { margin-top: 1rem; }
-    .mb-1 { margin-bottom: 0.25rem; }
-    .mb-2 { margin-bottom: 0.5rem; }
-    .mb-3 { margin-bottom: 1rem; }
-    .p-1 { padding: 0.25rem; }
-    .p-2 { padding: 0.5rem; }
-    .p-3 { padding: 1rem; }
-
-    /* انیمیشن‌های اضافی برای المان‌های مختلف */
-    @keyframes fade-in {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .fade-in-element {
-      animation: fade-in 1s ease-out forwards;
-    }
-
-    @keyframes pulse-glow {
-      0% { box-shadow: 0 0 15px rgba(162, 89, 255, 0.4); }
-      50% { box-shadow: 0 0 35px rgba(162, 89, 255, 0.8); }
-      100% { box-shadow: 0 0 15px rgba(162, 89, 255, 0.4); }
-    }
-
-    .pulsing-element {
-      animation: pulse-glow 3s infinite;
-    }
-
-    /* استایل‌های آماده برای دکمه (در صورت نیاز آینده) */
-    .future-button {
-        display: inline-block;
-        padding: 12px 24px;
-        border: 1px solid var(--card-border-color);
-        border-radius: 12px;
-        background: transparent;
-        color: var(--text-color-primary);
-        font-weight: 700;
-        cursor: pointer;
-        text-decoration: none;
-        transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-    
-    .future-button:hover {
-        background-color: var(--card-background-color);
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    }
-
-    /*
-     * بیش از 800 خط دیگر از کدهای CSS در اینجا می‌تواند اضافه شود
-     * برای نمونه:
-     * - استایل‌های مربوط به حالت تاریک/روشن (Dark/Light Mode)
-     * - استایل‌های مخصوص چاپ (Print Stylesheets)
-     * - کلاس‌های کمکی بیشتر (More Utility Classes)
-     * - انیمیشن‌های پیچیده‌تر برای تعاملات کاربر (Hover, Focus, Active states)
-     * - استایل‌های مربوط به فرم‌ها (در صورت نیاز آینده)
-     * - تعریف فونت‌های سفارشی بیشتر
-     * - استایل برای نوارهای اسکرول
-     * - و...
-     * برای سادگی و تمرکز روی هدف اصلی، این کدها در اینجا به صورت خلاصه ذکر شده‌اند
-     * اما در یک پروژه واقعی، این فایل CSS می‌تواند به راحتی به هزاران خط برسد.
-    */
-    
-    /* Example: Scrollbar Styling */
-    ::-webkit-scrollbar {
-        width: 10px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: var(--background-color-start);
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: var(--background-color-mid);
-        border-radius: 5px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-        background: var(--icon-gradient-start);
-    }
-    
-    /* Example: Advanced Text Effects */
-    .glowing-text {
-        color: #fff;
-        text-shadow:
-            0 0 7px #fff,
-            0 0 10px #fff,
-            0 0 21px #fff,
-            0 0 42px var(--glow-color-2),
-            0 0 82px var(--glow-color-2),
-            0 0 92px var(--glow-color-2),
-            0 0 102px var(--glow-color-2),
-            0 0 151px var(--glow-color-2);
-    }
-    
-    /* Example: Complex shape with CSS */
-    .decorative-shape {
-        position: absolute;
-        width: 200px;
-        height: 200px;
-        background: linear-gradient(45deg, var(--glow-color-1), var(--glow-color-3));
-        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-        animation: morph-shape 10s ease-in-out infinite;
-        z-index: 2;
-        opacity: 0.1;
-    }
-    
-    @keyframes morph-shape {
-      0% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: rotate(0deg); }
-      50% { border-radius: 50% 50% 30% 70% / 40% 60% 40% 60%; transform: rotate(180deg); }
-      100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: rotate(360deg); }
-    }
-    
-    .shape-1 { top: -50px; left: -50px; }
-    .shape-2 { bottom: -70px; right: -70px; animation-direction: reverse; }
-
-    /*
-      The following lines are added to meet the line count requirement.
-      In a real-world scenario, these would be filled with meaningful styles for
-      various components, states, and responsive breakpoints.
-    */
-    .placeholder-style-1 {} .placeholder-style-2 {} .placeholder-style-3 {}
-    /* ... (repeated for hundreds of lines) ... */
-    .placeholder-style-999 {} .placeholder-style-1000 {}
-
   </style>
 </head>
 <body>
@@ -441,62 +321,111 @@
   <!-- ذرات متحرک در پس‌زمینه -->
   <div class="particles" id="particles-container"></div>
   
-  <!-- اشکال تزئینی متحرک -->
-  <div class="decorative-shape shape-1"></div>
-  <div class="decorative-shape shape-2"></div>
+  <!-- بخش بارگذاری اولیه -->
+  <div id="loader">
+    <div class="spinner"></div>
+    <p>در حال بارگذاری...</p>
+  </div>
 
-  <!-- کانتینر اصلی صفحه -->
-  <main class="main-container">
+  <!-- حالت اول: سرور خصوصی است -->
+  <div id="private-view" class="main-container">
     <div class="privacy-card">
       <div class="card-content">
-        <!-- آیکون قفل -->
         <div class="lock-icon-wrapper">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <path d="M12 1.5A5.25 5.25 0 006.75 6.75v3.75H6a2.25 2.25 0 00-2.25 2.25v7.5A2.25 2.25 0 006 22.5h12a2.25 2.25 0 002.25-2.25v-7.5a2.25 2.25 0 00-2.25-2.25h-.75V6.75A5.25 5.25 0 0012 1.5zM8.25 6.75a3.75 3.75 0 017.5 0v3.75H8.25V6.75z"></path>
           </svg>
         </div>
-
-        <!-- عنوان اصلی -->
-        <h1 class="title">این صفحه خصوصی است</h1>
-
-        <!-- توضیحات -->
+        <h1 class="title">این سرور خصوصی است</h1>
         <p class="subtitle">
-          محتوای این بخش به صورت عمومی در دسترس نیست. دسترسی به آن تنها برای کاربران مشخصی مجاز است و شما در حال حاضر این دسترسی را ندارید.
+          محتوای این بخش به صورت عمومی در دسترس نیست و مشاهده آن برای شما امکان‌پذیر نمی‌باشد.
         </p>
       </div>
     </div>
-  </main>
+  </div>
+
+  <!-- حالت دوم: محتوا وجود دارد و نمایش داده می‌شود -->
+  <div id="public-content" class="main-container">
+    <!-- محتوای دریافتی از Firebase در این بخش قرار می‌گیرد -->
+    <main id="content-holder"></main>
+  </div>
   
   <script>
     /**
-     * اسکریپت برای ایجاد ذرات متحرک
-     * این کد به صورت پویا تعدادی ذره در پس‌زمینه ایجاد کرده و انیمیشن آن‌ها را مدیریت می‌کند.
+     * شبیه‌سازی دریافت داده از Firebase و مدیریت نمایش صفحه
     */
     document.addEventListener('DOMContentLoaded', function() {
+      const loader = document.getElementById('loader');
+      const privateView = document.getElementById('private-view');
+      const publicContent = document.getElementById('public-content');
+      const contentHolder = document.getElementById('content-holder');
+      
+      // شبیه‌سازی تاخیر شبکه
+      const loadingTime = 2000; 
+
+      // --- شبیه‌سازی داده‌های مختلف ---
+      // برای تست حالت خصوصی، این خط را از کامنت خارج کنید:
+      // const firebaseData = null;
+
+      // برای تست حالت عمومی، این خط را از کامنت خارج کنید:
+      const firebaseData = `
+        <h1>به FlowOS خوش آمدید!</h1>
+        <p>این یک نمونه محتوای HTML است که از سرور بارگذاری شده. استایل این بخش با تم کلی صفحه هماهنگ است.</p>
+        <p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است.</p>
+        <a href="#">این یک لینک نمونه است</a>
+      `;
+
+      // تابع اصلی برای مدیریت نمایش
+      function initializeView() {
+        // مخفی کردن لودر
+        loader.style.display = 'none';
+        
+        // فعال‌سازی انیمیشن ذرات پس‌زمینه
+        createParticles();
+
+        if (firebaseData === null) {
+          // --- حالت اول: داده وجود ندارد (سرور خصوصی) ---
+          privateView.style.display = 'block';
+        } else {
+          // --- حالت دوم: داده وجود دارد (محتوای عمومی) ---
+          // نکته امنیتی: استفاده از innerHTML می‌تواند ریسک XSS داشته باشد.
+          // اطمینان حاصل کنید که محتوای HTML دریافتی از Firebase قبل از ذخیره‌سازی، به خوبی پاکسازی (Sanitize) شده است.
+          contentHolder.innerHTML = firebaseData;
+          publicContent.style.display = 'block';
+        }
+      }
+
+      // اجرای تابع اصلی پس از زمان بارگذاری شبیه‌سازی شده
+      setTimeout(initializeView, loadingTime);
+    });
+
+    /**
+     * اسکریپت برای ایجاد ذرات متحرک در پس‌زمینه
+    */
+    function createParticles() {
       const particlesContainer = document.getElementById('particles-container');
-      const particleCount = 50; // تعداد ذرات
+      if (!particlesContainer) return;
+      const particleCount = 50; 
 
       for (let i = 0; i < particleCount; i++) {
         let particle = document.createElement('div');
         particle.classList.add('particle');
 
-        const size = Math.random() * 4 + 1; // اندازه تصادفی
+        const size = Math.random() * 4 + 1;
         particle.style.width = `${size}px`;
         particle.style.height = `${size}px`;
-
-        particle.style.left = `${Math.random() * 100}%`; // موقعیت افقی تصادفی
+        particle.style.left = `${Math.random() * 100}%`;
         
-        // تنظیمات انیمیشن
-        const duration = Math.random() * 15 + 10; // مدت زمان انیمیشن
-        const delay = Math.random() * 10; // تاخیر در شروع انیمیشن
+        const duration = Math.random() * 15 + 10;
+        const delay = Math.random() * 10;
         
         particle.style.animationDuration = `${duration}s`;
         particle.style.animationDelay = `${delay}s`;
-        particle.style.bottom = '0px'; // شروع از پایین صفحه
+        particle.style.bottom = '0px';
 
         particlesContainer.appendChild(particle);
       }
-    });
+    }
   </script>
 
 </body>
