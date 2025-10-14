@@ -1,17 +1,152 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>نمایش سرور HTML</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>نمایش سرور</title>
+  <style>
+    :root{
+      --bg1:#00c6ff;
+      --bg2:#0072ff;
+      --card:#ffffff;
+      --muted:#64748b;
+      --accent:#10b981;
+    }
+    html,body{height:100%;margin:0;font-family:"Vazirmatn",nt,system-ui,Segoe UI, Roboto, "Helvetica Neue", Arial;}
+    body{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 100%);
+      color:#0f172a;
+    }
+
+    /* container */
+    .wrap{
+      width:100%;
+      max-width:980px;
+      margin:40px;
+    }
+
+    /* private card */
+    .card{
+      background:var(--card);
+      border-radius:14px;
+      box-shadow:0 10px 30px rgba(2,6,23,0.18);
+      overflow:hidden;
+      display:flex;
+      gap:0;
+      min-height:220px;
+      align-items:stretch;
+    }
+
+    .card-left{
+      flex:1.1;
+      padding:36px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:12px;
+    }
+
+    .card-right{
+      flex:0.9;
+      background:linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.04));
+      padding:24px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .title{
+      font-size:28px;
+      font-weight:800;
+      margin:0;
+      color:#0b1220;
+    }
+    .subtitle{
+      color:var(--muted);
+      margin:0;
+      font-size:15px;
+      line-height:1.5;
+    }
+
+    .badge{
+      display:inline-flex;
+      gap:8px;
+      margin-top:10px;
+      align-items:center;
+    }
+    .pill{
+      background:rgba(16,185,129,0.12);
+      color:var(--accent);
+      padding:8px 12px;
+      border-radius:999px;
+      font-weight:600;
+      font-size:13px;
+    }
+
+    .lock{
+      width:72px;
+      height:72px;
+      background:linear-gradient(135deg,#fef3c7,#fee2e2);
+      border-radius:12px;
+      display:grid;
+      place-items:center;
+      box-shadow:0 6px 18px rgba(2,6,23,0.12);
+      font-size:34px;
+    }
+
+    .btn{
+      display:inline-block;
+      margin-top:18px;
+      background:#0ea5a4;
+      color:white;
+      padding:10px 16px;
+      border-radius:10px;
+      text-decoration:none;
+      font-weight:700;
+    }
+
+    /* fallback for small screens */
+    @media (max-width:720px){
+      .card{flex-direction:column}
+      .card-right{order:-1;padding:18px;}
+      .card-left{padding:20px;}
+      .title{font-size:20px}
+    }
+
+    /* area where HTML content will be injected */
+    #contentArea {
+      width:100%;
+      min-height:60vh;
+      border-radius:12px;
+      overflow:auto;
+      box-shadow:0 8px 24px rgba(2,6,23,0.12);
+      background:white;
+    }
+
+    /* small helper for error text */
+    .error-note{color:#ef4444;font-weight:700}
+  </style>
 </head>
 <body>
-  <div id="content">در حال بارگذاری...</div>
+  <div class="wrap">
+    <div id="contentArea">
+      <!-- initial loading state -->
+      <div style="padding:60px 40px;text-align:center;">
+        <h2 style="margin:0;font-weight:800">در حال بارگذاری...</h2>
+        <p style="color:var(--muted);margin-top:8px">لطفاً صبر کنید — در حال واکشی داده از سرور</p>
+      </div>
+    </div>
+  </div>
 
+  <!-- firebase v8 -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
   <script>
+    // --- پیکربندی فایربیس (مقادیر پروژهٔ خودت) ---
     const firebaseConfig = {
       apiKey: "AIzaSyAT8CDJoCOm8XVo62y-3CgS1Fqabdq2tjQ",
       authDomain: "serverjson-a2107.firebaseapp.com",
@@ -19,25 +154,115 @@
       databaseURL: "https://serverjson-a2107-default-rtdb.firebaseio.com"
     };
     firebase.initializeApp(firebaseConfig);
-
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
     const db = firebase.database();
 
-    if (id) {
-      db.ref("servers/" + id).once("value").then(snapshot => {
-        const data = snapshot.val();
-        if (data && data.type === "html") {
-          document.body.innerHTML = data.content;
-        } else {
-          document.getElementById("content").innerText = "سرور HTML یافت نشد.";
-        }
-      }).catch(err => {
-        document.getElementById("content").innerText = "خطا در بارگذاری محتوا.";
-        console.error(err);
-      });
+    // --- خواندن id از پارامتر URL ---
+    const params = new URLSearchParams(window.location.search);
+    const serverId = params.get('id');
+
+    const contentArea = document.getElementById('contentArea');
+
+    function renderPrivateUI(reason) {
+      // طراحی صفحهٔ گرافیکیِ "خصوصی است"
+      contentArea.innerHTML = `
+        <div class="card" role="note">
+          <div class="card-left">
+            <h1 class="title">🔒 این سرور خصوصی است</h1>
+            <p class="subtitle">مالک این سرور آن را از حالت عمومی خارج کرده است. برای مشاهدهٔ محتوا باید وارد حساب کاربری شده و دسترسی لازم را داشته باشید.</p>
+            <div class="badge">
+              <div class="pill">حریم خصوصی</div>
+              <div style="flex:1"></div>
+              <a class="btn" href="./Login.html">ورود / دسترسی</a>
+            </div>
+            ${ reason ? `<p style="margin-top:12px;color:var(--muted);font-size:13px">جزئیات: ${reason}</p>` : '' }
+          </div>
+          <div class="card-right">
+            <div class="lock">🔐</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderNotFound() {
+      contentArea.innerHTML = `
+        <div style="padding:60px;text-align:center;">
+          <h2 class="title">❌ سرور پیدا نشد</h2>
+          <p class="subtitle">چنین سروری وجود ندارد یا آیدی اشتباه است.</p>
+          <p style="margin-top:24px"><a class="btn" href="./Home page.html">بازگشت به داشبورد</a></p>
+        </div>
+      `;
+    }
+
+    function renderHtmlContent(html) {
+      // این حالت محتوای HTML اصل را رندر می‌کند.
+      // هشدار امنیتی: این خط باعث اجرای تگ <script> درون html می‌شود.
+      // اگر نمی‌خواهی اسکریپت‌های ذخیره شده اجرا شوند، از گزینهٔ امن زیر استفاده کن:
+      // contentArea.innerHTML = '<div style="padding:20px">' + escapeHtml(html) + '</div>';
+      document.open();
+      document.write(html);
+      document.close();
+    }
+
+    // در صورت نیاز می‌توان محتوا را ایمن‌تر نمایش داد (بدون اجرای اسکریپت)
+    function escapeHtml(unsafe) {
+      return unsafe
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    // --- اجرایی ---
+    if (!serverId) {
+      renderNotFound();
     } else {
-      document.getElementById("content").innerText = "شناسه سرور مشخص نشده.";
+      db.ref('servers/' + serverId).once('value').then(snap => {
+        const data = snap.val();
+
+        // اگر هیچ داده‌ای نباشه -> ممکنه حذف شده یا خصوصیه
+        if (!data) {
+          renderPrivateUI('موردی برای این آیدی در دسترس نیست (null).');
+          return;
+        }
+
+        // اگر نوع json باشه و فقط بخوای JSON نمایش بدی، می‌تونی اینجا رفتار متفاوت بذاری.
+        if (data.type && data.type.toLowerCase() === 'html') {
+          // اگر فیلد visibility وجود داره و عمومی نیست -> صفحهٔ خصوصی نشون بده
+          if (data.visibility && data.visibility.toLowerCase() !== 'public') {
+            renderPrivateUI('مالک سرور آن را به حالت خصوصی تغییر داده است.');
+            return;
+          }
+
+          // اگر content تهی یا null یا رشتهٔ خالی بود -> خصوصی یا نال
+          if (!data.content || data.content === null || (typeof data.content === 'string' && data.content.trim() === '')) {
+            renderPrivateUI('محتوا خالی است یا حذف شده است.');
+            return;
+          }
+
+          // در غیر این صورت: رندر محتوای HTML
+          renderHtmlContent(data.content);
+          return;
+        }
+
+        // اگر نوع غیر htmlه: پیام مناسب (مثلاً JSON)
+        contentArea.innerHTML = `
+          <div style="padding:40px;text-align:center;">
+            <h2 class="title">نمایش JSON سرور</h2>
+            <pre style="text-align:left;white-space:pre-wrap;background:#0b122033;padding:18px;border-radius:8px;">${escapeHtml(JSON.stringify(data, null, 2))}</pre>
+            <p style="margin-top:18px"><a class="btn" href="./Home page.html">بازگشت</a></p>
+          </div>
+        `;
+      }).catch(err => {
+        console.error(err);
+        contentArea.innerHTML = `
+          <div style="padding:40px;text-align:center;">
+            <h2 class="title">خطا در بارگذاری</h2>
+            <p class="subtitle">در اتصال به دیتابیس مشکلی پیش آمد.</p>
+            <p style="margin-top:12px;color:#ef4444">${escapeHtml(err.message || '')}</p>
+          </div>
+        `;
+      });
     }
   </script>
 </body>
