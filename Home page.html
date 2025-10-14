@@ -498,7 +498,7 @@
                     </div>
 
                     <div class="server-link-container" style="display: none;" id="server-link-wrapper">
-                        <label>لینک عمومی سرور (برای کپی کلیک کنید)</label>
+                        <label>لینک عمومی سرور (برای باز کردن کلیک کنید)</label>
                         <input type="text" id="server-link-input" readonly>
                     </div>
                     
@@ -722,13 +722,20 @@
             
             if (server.visibility === 'public') {
                 if (server.type === 'html') {
-                    serverLinkInput.value = `./view.html?id=${server.id}`;
+                    const realLink = `https://abolfazl140122.github.io/serverJson/view.html?id=${server.id}`;
+                    const displayLink = `Norix://server?id=${server.id}`;
+                    serverLinkInput.value = displayLink;
+                    serverLinkInput.onclick = () => window.open(realLink, '_blank');
                 } else {
-                    serverLinkInput.value = `${firebaseConfig.databaseURL}/servers/${server.id}.json`;
+                    const realLink = `${firebaseConfig.databaseURL}/servers/${server.id}.json`;
+                    const displayLink = `Norix://json?id=${server.id}`;
+                    serverLinkInput.value = displayLink;
+                    serverLinkInput.onclick = () => window.open(realLink, '_blank');
                 }
                 serverLinkWrapper.style.display = 'block';
             } else {
-                 serverLinkWrapper.style.display = 'none';
+                serverLinkWrapper.style.display = 'none';
+                serverLinkInput.onclick = null; // Clear handler
             }
             
             deleteBtn.style.display = 'block';
@@ -898,15 +905,6 @@
             if (confirm("آیا برای خروج از حساب کاربری خود مطمئن هستید؟")) {
                 auth.signOut();
             }
-        });
-
-        // کپی کردن لینک در کلیپ‌بورد
-        serverLinkInput.addEventListener('click', () => {
-            navigator.clipboard.writeText(serverLinkInput.value).then(() => {
-                alert('لینک در کلیپ‌بورد کپی شد!');
-            }, () => {
-                alert('خطا در کپی کردن لینک.');
-            });
         });
 
     </script>
