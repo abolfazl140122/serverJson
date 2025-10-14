@@ -5,47 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>داشبورد - Norix</title>
     <style>
-        /* --- متغیرهای اصلی --- */
+        /* متغیرهای اصلی برای تم روشن و تیره */
         :root {
-            --primary-color: #4a90e2;
-            --primary-hover-color: #357abd;
-            --primary-color-rgb: 74, 144, 226;
-            --danger-color: #d0021b;
-            --danger-hover-color: #a30215;
-            --success-color: #7ed321;
-            --success-hover-color: #62a81a;
-            --font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            --border-radius-sm: 8px;
-            --border-radius-md: 16px;
+            --primary-color: #3498db;
+            --primary-hover-color: #2980b9;
+            --primary-color-rgb: 52, 152, 219; /* برای box-shadow */
+            --danger-color: #e74c3c;
+            --danger-hover-color: #c0392b;
+            --success-color: #2ecc71;
 
             /* Light Theme */
-            --bg-color: #f5f7fa;
-            --card-bg-color: #ffffff;
-            --header-bg-color: #ffffff;
+            --bg-color: #f4f7f6;
+            --card-bg-color: #fff;
+            --header-bg-color: #fff;
             --text-color: #333;
             --light-text-color: #777;
-            --border-color: #e0e6ed;
-            --shadow-light: rgba(0,0,0,0.05);
+            --border-color: #ddd;
+            --shadow-light: rgba(0,0,0,0.08);
             --shadow-medium: rgba(0,0,0,0.1);
             --input-bg-color: #fdfdfd;
+
+            --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
 
         /* Dark Theme */
         body.dark-theme {
-            --bg-color: #121212;
-            --card-bg-color: #1e1e1e;
-            --header-bg-color: #1e1e1e;
+            --bg-color: #1a1a1a;
+            --card-bg-color: #2c2c2c;
+            --header-bg-color: #252525;
             --text-color: #e0e0e0;
-            --light-text-color: #a0a0a0;
-            --border-color: #333;
+            --light-text-color: #999;
+            --border-color: #444;
             --shadow-light: rgba(0,0,0,0.2);
             --shadow-medium: rgba(0,0,0,0.3);
-            --input-bg-color: #2a2a2a;
+            --input-bg-color: #333;
         }
-        
-        /* --- استایل‌های پایه --- */
-        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap');
-        
+
+        /* استایل‌های پایه بدنه و فونت */
         body, html {
             margin: 0;
             padding: 0;
@@ -58,119 +54,120 @@
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        /* --- هدر --- */
+        /* هدر صفحه */
         .header {
             background-color: var(--header-bg-color);
-            padding: 15px 30px;
-            box-shadow: 0 2px 5px var(--shadow-light);
+            padding: 15px 25px;
+            box-shadow: 0 2px 5px var(--shadow-medium);
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 100;
+            transition: background-color 0.3s ease;
         }
         .header-title {
             font-size: 24px;
-            font-weight: 700;
+            font-weight: bold;
+            margin: 0;
         }
-        .header-actions { display: flex; align-items: center; gap: 15px; }
-        .icon-btn {
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        #theme-toggle-btn {
             background: none;
             border: 1px solid var(--border-color);
             border-radius: 50%;
-            width: 42px;
-            height: 42px;
+            width: 40px;
+            height: 40px;
             cursor: pointer;
-            font-size: 22px;
+            font-size: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             color: var(--text-color);
-            transition: all 0.2s ease;
+            transition: background-color 0.3s, border-color 0.3s;
         }
-        .icon-btn:hover { background-color: var(--bg-color); border-color: var(--primary-color); }
+        #theme-toggle-btn:hover {
+            background-color: var(--bg-color);
+        }
         #logout-btn {
-            background: none;
             border: 1px solid var(--danger-color);
             color: var(--danger-color);
-            padding: 8px 18px;
-            border-radius: var(--border-radius-sm);
-            font-weight: 600;
-            font-family: var(--font-family);
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
             transition: all 0.3s ease;
+            background: none;
         }
-        #logout-btn:hover { background-color: var(--danger-color); color: #fff; transform: translateY(-2px); }
+        #logout-btn:hover {
+            background-color: var(--danger-color);
+            color: #fff;
+        }
 
-        /* --- کانتینر اصلی --- */
-        .main-container { padding: 30px; }
+        /* کانتینر اصلی محتوا */
+        .main-container {
+            padding: 25px;
+        }
         #server-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
         }
 
-        /* --- طراحی جدید کارت سرور --- */
+        /* کارت نمایش هر سرور (طراحی جدید) */
         .server-card {
-            background: var(--card-bg-color);
-            border-radius: var(--border-radius-md);
+            background-color: var(--card-bg-color);
+            border-radius: 12px;
             box-shadow: 0 4px 15px var(--shadow-light);
+            cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            border-top: 5px solid var(--primary-color);
+            border-left: 5px solid var(--primary-color);
         }
         .server-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px var(--shadow-medium);
+            box-shadow: 0 6px 20px var(--shadow-medium);
         }
-        .server-card-content { padding: 20px 25px; flex-grow: 1; }
-        .server-card-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-        .server-icon { font-size: 36px; line-height: 1; }
-        .server-details { flex-grow: 1; }
-        .server-name { font-size: 18px; font-weight: 600; margin: 0; }
-        .server-id { font-size: 12px; color: var(--light-text-color); }
-        .server-card-footer {
-            padding: 15px 25px;
-            background-color: var(--bg-color);
+        .server-card-content {
+            padding: 20px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 15px;
+        }
+        .server-icon {
+            font-size: 32px;
+            line-height: 1;
+        }
+        .server-details {
+            flex-grow: 1;
+        }
+        .server-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+        .server-meta {
             font-size: 13px;
+            color: var(--light-text-color);
         }
         .server-meta span {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 8px;
-            border-radius: 6px;
-            background: var(--border-color);
-            font-weight: 500;
+            margin-left: 10px;
         }
-        .edit-server-btn {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 8px 20px;
-            border-radius: var(--border-radius-sm);
-            cursor: pointer;
-            font-weight: 600;
-            border: none;
-            transition: all 0.2s ease;
-        }
-        .edit-server-btn:hover { background-color: var(--primary-hover-color); }
 
-        /* --- حالت خالی --- */
-        #empty-state {
+        /* پیام عدم وجود سرور */
+        #no-servers-message {
             text-align: center;
             margin-top: 50px;
             color: var(--light-text-color);
+            font-size: 16px;
         }
-        #empty-state svg { width: 150px; margin-bottom: 20px; opacity: 0.7; }
-        #empty-state h3 { font-size: 22px; color: var(--text-color); margin: 0; }
-        #empty-state p { font-size: 16px; margin-top: 10px; }
 
-        /* --- دکمه شناور افزودن --- */
+        /* دکمه افزودن سرور جدید */
         #add-server-btn {
             position: fixed;
             bottom: 30px;
@@ -182,171 +179,274 @@
             border: none;
             border-radius: 50%;
             font-size: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 5px 20px rgba(var(--primary-color-rgb), 0.4);
+            line-height: 60px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            user-select: none;
         }
-        #add-server-btn:hover { background-color: var(--primary-hover-color); transform: scale(1.1) rotate(90deg); }
+        #add-server-btn:hover {
+            background-color: var(--primary-hover-color);
+            transform: scale(1.1);
+        }
 
-        /* --- استایل‌های عمومی مودال --- */
+        /* --- START: REFACTORED MODAL STYLES --- */
+
+        /* لایه مودال */
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(5px);
-            display: flex; justify-content: center; align-items: center;
-            opacity: 0; visibility: hidden; z-index: 1000;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Enhanced overlay */
+            backdrop-filter: blur(4px); /* Soft blur effect */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
-            padding: 16px; box-sizing: border-box;
+            z-index: 1000;
+            padding: 16px; /* Prevents modal from touching screen edges */
+            box-sizing: border-box;
         }
-        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* محتوای مودال */
         .modal-content {
             background-color: var(--card-bg-color);
-            border-radius: var(--border-radius-md);
-            width: 100%; max-width: 750px;
-            max-height: 90vh; box-sizing: border-box;
-            box-shadow: 0 10px 40px var(--shadow-medium);
-            display: flex; flex-direction: column;
+            border-radius: 16px; /* Softer radius */
+            width: 100%; /* Take full width of padded container */
+            max-width: 700px; /* Responsive max-width */
+            max-height: 90vh; /* Responsive max-height */
+            box-sizing: border-box;
+            box-shadow: 0 8px 30px var(--shadow-medium);
+            display: flex;
+            flex-direction: column;
             transform: scale(0.95) translateY(10px);
             transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
-        .modal-overlay.visible .modal-content { transform: scale(1) translateY(0); }
-        .modal-form { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-        .modal-title {
-            font-size: 24px; font-weight: 600; margin: 0; padding: 25px 30px;
-            border-bottom: 1px solid var(--border-color); flex-shrink: 0;
+        .modal-overlay.visible .modal-content {
+            transform: scale(1) translateY(0);
         }
-        .modal-body {
-            overflow-y: auto; padding: 30px; display: grid;
-            grid-template-columns: repeat(2, 1fr); gap: 25px; flex-grow: 1;
-        }
-        .modal-actions {
-            display: flex; justify-content: flex-end; gap: 12px; margin-top: auto;
-            border-top: 1px solid var(--border-color); padding: 20px 30px;
-            background-color: var(--bg-color);
-            border-bottom-left-radius: var(--border-radius-md);
-            border-bottom-right-radius: var(--border-radius-md);
-            flex-shrink: 0;
-        }
-        .modal-btn {
-            padding: 12px 24px; border: none; border-radius: var(--border-radius-sm);
-            font-size: 16px; font-weight: 600; font-family: inherit;
-            cursor: pointer; transition: all 0.2s ease;
-        }
-        .btn-primary { background-color: var(--primary-color); color: #fff; order: 3; }
-        .btn-primary:hover { background-color: var(--primary-hover-color); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(var(--primary-color-rgb), 0.3); }
-        .btn-secondary { background-color: transparent; color: var(--text-color); border: 1px solid var(--border-color); order: 2; }
-        .btn-secondary:hover { background-color: var(--border-color); }
-        .btn-danger { background-color: transparent; color: var(--danger-color); font-weight: 500; order: 1; margin-right: auto; }
-        .btn-danger:hover { background-color: rgba(208, 2, 27, 0.1); }
-        .btn-success { background-color: var(--success-color); color: #fff; }
-        .btn-success:hover { background-color: var(--success-hover-color); transform: translateY(-2px); }
         
-        /* --- استایل فرم‌ها --- */
-        .input-group { text-align: right; display: flex; flex-direction: column; }
-        .input-group label { margin-bottom: 8px; font-weight: 600; font-size: 15px; }
+        #server-form {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+            padding: 25px 30px;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0; /* Prevent title from shrinking */
+        }
+
+        /* بدنه مودال با گرید واکنش‌گرا */
+        .modal-body {
+            overflow-y: auto; /* Enable internal scrolling */
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Desktop: 2 columns */
+            gap: 25px;
+            flex-grow: 1;
+        }
+
+        /* استایل فرم‌های داخل مودال */
+        .input-group {
+            margin: 0; /* Remove margin as grid gap handles spacing */
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600; /* Bolder labels */
+            font-size: 15px;
+            color: var(--text-color);
+        }
         .input-group input, .input-group textarea, .input-group select {
-            width: 100%; padding: 12px 15px; border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-sm); box-sizing: border-box; font-size: 16px;
-            font-family: inherit; background-color: var(--input-bg-color); color: var(--text-color);
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            font-family: inherit;
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
             transition: all 0.2s ease;
         }
         .input-group input:focus, .input-group textarea:focus, .input-group select:focus {
-            outline: none; border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.2);
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.25);
         }
-        .full-width { grid-column: 1 / -1; }
-        #json-content-input, #html-content-input { min-height: 200px; direction: ltr; text-align: left; font-family: 'Courier New', Courier, monospace; resize: vertical; }
-        #html-preview { width: 100%; height: 200px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); background-color: var(--card-bg-color); }
-        
-        .personalization-group { display: flex; gap: 15px; align-items: flex-end; }
-        .personalization-group > div:first-child { flex-grow: 1; }
-        .personalization-group input[type="color"] { min-width: 50px; height: 50px; padding: 5px; cursor: pointer; }
-        .server-link-container {
-            margin-top: 15px; background-color: var(--bg-color); padding: 12px 15px; border-radius: var(--border-radius-sm);
-            display: flex; align-items: center; gap: 10px;
-        }
-        .server-link-container label { font-size: 14px; margin: 0; font-weight: 600; }
-        .server-link-container input { flex-grow: 1; border: none; background: none; font-size: 14px; color: var(--primary-color); direction: ltr; padding: 0;}
-        .server-link-container button { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text-color); }
-        .tooltip { position: relative; }
-        .tooltip .tooltip-text {
-            visibility: hidden; background-color: #333; color: #fff; text-align: center;
-            border-radius: 6px; padding: 5px 10px; position: absolute; z-index: 1;
-            bottom: 125%; left: 50%; margin-left: -60px; opacity: 0; transition: opacity 0.3s;
-        }
-        .tooltip .tooltip-text.visible { visibility: visible; opacity: 1; }
 
+        /* چیدمان ستون‌ها برای آیتم‌های بزرگتر */
+        .editor-container, .html-preview-container, .server-link-container, #modal-message {
+            grid-column: 1 / -1; /* Span full width */
+        }
+        
+        #json-content-input, #html-content-input {
+            min-height: 200px;
+            direction: ltr;
+            text-align: left;
+            font-family: 'Courier New', Courier, monospace;
+            resize: vertical;
+        }
+        .html-preview-container { grid-column: 1 / -1; }
+        #html-preview {
+            width: 100%;
+            height: 200px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--card-bg-color); /* Match theme */
+        }
+        
+        /* گروه شخصی‌سازی (آیکون و رنگ) */
+        .personalization-group {
+            display: flex;
+            flex-direction: row; /* Align items horizontally */
+            gap: 15px;
+            align-items: flex-end; /* Align to the bottom for clean look */
+        }
+        .personalization-group > div { flex-grow: 1; }
+        .personalization-group > div:last-child { flex-grow: 0; } /* Don't grow color picker */
+        .personalization-group input[type="color"] {
+            min-width: 50px;
+            height: 50px; /* Match input height */
+            padding: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .server-link-container {
+            margin-top: 15px;
+            background-color: var(--bg-color);
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+        .server-link-container label { font-size: 14px; margin-bottom: 5px; }
+        .server-link-container input { width: 100%; border: none; background: none; font-size: 14px; color: var(--primary-color); direction: ltr; cursor: pointer; padding: 0;}
+        .server-link-container input:focus { box-shadow: none; border: none;}
+        
+        /* بخش دکمه‌های مودال */
+        .modal-actions { 
+            display: flex; 
+            justify-content: flex-end; /* Align buttons to the right */
+            gap: 12px; 
+            margin-top: auto; /* Push to the bottom */
+            border-top: 1px solid var(--border-color); 
+            padding: 20px 30px; 
+            background-color: var(--header-bg-color);
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+            flex-shrink: 0; /* Prevent actions from shrinking */
+            transition: border-color 0.3s; 
+        }
+        .modal-btn { 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: 600; /* Bolder buttons */
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+        }
+        #submit-btn { background-color: var(--primary-color); color: #fff; order: 3; }
+        #submit-btn:hover { background-color: var(--primary-hover-color); transform: translateY(-2px); }
+        #cancel-btn { background-color: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); order: 2; }
+        #cancel-btn:hover { background-color: var(--border-color); }
+        #delete-btn { background-color: transparent; color: var(--danger-color); font-weight: 500; order: 1; margin-right: auto; } /* Push to the far left */
+        #delete-btn:hover { background-color: rgba(231, 76, 60, 0.1); }
+        
+        /* پیام خطا در مودال */
         #modal-message { color: var(--danger-color); min-height: 20px; font-weight: 500; text-align: center; }
 
-        /* --- مودال پروفایل --- */
-        #profile-modal .modal-body { grid-template-columns: 1fr; }
-        .profile-info { padding: 15px; background-color: var(--bg-color); border-radius: var(--border-radius-sm); text-align: center; }
-        .profile-info p { margin: 0; }
-        .profile-info strong { color: var(--primary-color); }
-        .divider { grid-column: 1 / -1; height: 1px; background: var(--border-color); margin: 10px 0; }
+        /* سوییچ برای نمایش عمومی/خصوصی */
+        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success-color); }
+        input:checked + .slider:before { transform: translateX(26px); }
 
-        /* --- لودر --- */
-        .loader-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.7); display: none;
-            justify-content: center; align-items: center; z-index: 9999;
-        }
-        body.dark-theme .loader-overlay { background: rgba(0, 0, 0, 0.7); }
-        .spinner {
-            width: 50px; height: 50px; border: 5px solid var(--border-color);
-            border-top-color: var(--primary-color); border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-
-        /* --- رسپانسیو --- */
+        /* --- Media Queries for Responsive Modal --- */
         @media (max-width: 768px) {
-            .modal-body { grid-template-columns: 1fr; padding: 20px; gap: 20px; }
-            .modal-actions { flex-direction: column-reverse; }
-            .modal-btn { width: 100%; }
-            #add-server-btn { bottom: 20px; right: 20px; left: auto; }
+            .modal-body {
+                grid-template-columns: 1fr; /* Tablet/Mobile: 1 column */
+                padding: 20px;
+                gap: 20px;
+            }
+            .modal-title {
+                padding: 20px;
+                font-size: 20px;
+            }
+            .modal-actions {
+                padding: 15px;
+                flex-direction: column-reverse; /* Stack buttons vertically */
+            }
+            .modal-btn {
+                width: 100%;
+            }
+            #delete-btn {
+                margin-right: 0;
+                margin-top: 8px;
+            }
+            #add-server-btn {
+                bottom: 20px;
+                right: 20px;
+                left: auto;
+            }
         }
+        /* --- END: REFACTORED MODAL STYLES --- */
+
     </style>
 </head>
 <body>
 
-    <div id="loader" class="loader-overlay"><div class="spinner"></div></div>
-
     <header class="header">
-        <h1 class="header-title">داشبورد سرورها</h1>
+        <h1 class="header-title">سرورهای من</h1>
         <div class="header-actions">
-            <button id="profile-btn" class="icon-btn" title="پروفایل کاربری">👤</button>
-            <button id="theme-toggle-btn" class="icon-btn" title="تغییر تم">☀️</button>
+            <button id="theme-toggle-btn" title="تغییر تم">☀️</button>
             <button id="logout-btn">خروج</button>
         </div>
     </header>
 
     <main class="main-container">
         <div id="server-list"></div>
-        <div id="empty-state" style="display: none;">
-            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M888 792H200V168c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v688c0 4.4 3.6 8 8 8h752c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM288 604a8 8 0 0 0 16 0v-88a8 8 0 0 0-16 0v88zm112 0a8 8 0 0 0 16 0v-144a8 8 0 0 0-16 0v144zm112 0a8 8 0 0 0 16 0V328a8 8 0 0 0-16 0v276zm112 0a8 8 0 0 0 16 0V448a8 8 0 0 0-16 0v156zm112 0a8 8 0 0 0 16 0V384a8 8 0 0 0-16 0v220zM832 112H440c-4.4 0-8 3.6-8 8v504c0 4.4 3.6 8 8 8h392c4.4 0 8-3.6 8-8V120c0-4.4-3.6-8-8-8zm-48 488H488V160h304v440z"/></svg>
-            <h3>هنوز سروری نساخته‌اید!</h3>
-            <p>برای ساخت اولین سرور خود، روی دکمه + در پایین صفحه کلیک کنید.</p>
-        </div>
+        <p id="no-servers-message" style="display: none;">هنوز سروری نساخته‌اید. برای شروع روی علامت + کلیک کنید.</p>
     </main>
 
     <button id="add-server-btn" title="ساخت سرور جدید">+</button>
 
-    <!-- مودال ساخت و ویرایش سرور -->
+    <!-- مودال داینامیک برای ساخت و ویرایش سرور -->
     <div id="server-modal" class="modal-overlay">
         <div class="modal-content">
-            <form id="server-form" class="modal-form" onsubmit="return false;">
-                <h2 id="modal-title" class="modal-title"></h2>
+             <!-- The form now wraps the entire modal content for better structure -->
+            <form id="server-form" onsubmit="return false;">
+                <h2 id="modal-title" class="modal-title">ساخت سرور جدید</h2>
                 <div class="modal-body">
+                    
                     <input type="hidden" id="server-id-input">
+                    
                     <div class="input-group">
                         <label for="server-name-input">نام سرور</label>
                         <input type="text" id="server-name-input" required>
                     </div>
+                    
                     <div class="input-group">
                         <label for="server-type-select">نوع سرور</label>
                         <select id="server-type-select">
@@ -354,84 +454,60 @@
                             <option value="html">HTML</option>
                         </select>
                     </div>
-                    <div class="input-group full-width" id="password-container">
+
+                    <div class="input-group" id="password-container">
                         <label for="server-password-input">رمز عبور سرور</label>
                         <input type="password" id="server-password-input">
                     </div>
-                    <div class="input-group personalization-group full-width">
-                         <div>
+
+                    <!-- Personalization fields are now balanced -->
+                    <div class="input-group personalization-group">
+                         <div style="flex-grow: 1;">
                             <label for="server-icon-input">آیکون (ایموجی)</label>
                             <input type="text" id="server-icon-input" maxlength="2" placeholder="🚀">
                          </div>
                          <div>
                             <label for="server-color-input">رنگ</label>
-                            <input type="color" id="server-color-input" value="#4a90e2">
+                            <input type="color" id="server-color-input" value="#3498db">
                          </div>
                     </div>
-                    <div class="input-group full-width">
-                        <label>نمایش عمومی (Public)</label>
-                        <select id="server-visibility-select">
-                            <option value="public">عمومی (قابل دسترس با لینک)</option>
-                            <option value="private">خصوصی (فقط برای شما)</option>
-                        </select>
+
+                    <div class="input-group">
+                         <label for="server-visibility-toggle">نمایش عمومی (Public)</label>
+                         <label class="switch">
+                           <input type="checkbox" id="server-visibility-toggle" checked>
+                           <span class="slider"></span>
+                         </label>
                     </div>
-                    <div class="editor-container full-width" id="json-editor-container">
+
+                    <!-- بخش ویرایشگرها -->
+                    <div class="editor-container" id="json-editor-container">
                         <label for="json-content-input">محتوای JSON</label>
                         <textarea id="json-content-input" placeholder='{ "key": "value" }'></textarea>
                     </div>
-                    <div class="editor-container full-width" id="html-editor-container" style="display: none;">
+                    
+                    <div class="editor-container" id="html-editor-container" style="display: none;">
                         <label for="html-content-input">محتوای HTML</label>
                         <textarea id="html-content-input" placeholder="<h1>سلام دنیا!</h1>"></textarea>
                     </div>
-                    <div class="html-preview-container full-width" id="html-preview-wrapper" style="display: none;">
+                    
+                    <!-- پیش‌نمایش HTML -->
+                    <div class="html-preview-container" id="html-preview-wrapper" style="display: none;">
                         <label>پیش‌نمایش زنده</label>
                         <iframe id="html-preview" srcdoc=""></iframe>
                     </div>
-                    <div class="server-link-container full-width" style="display: none;" id="server-link-wrapper">
-                        <label>لینک عمومی:</label>
+
+                    <div class="server-link-container" style="display: none;" id="server-link-wrapper">
+                        <label>لینک عمومی سرور (برای باز کردن کلیک کنید)</label>
                         <input type="text" id="server-link-input" readonly>
-                        <div class="tooltip">
-                            <button type="button" id="copy-link-btn">📋</button>
-                            <span class="tooltip-text" id="copy-tooltip">کپی شد!</span>
-                        </div>
-                    </div>
-                    <p id="modal-message" class="full-width"></p>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" id="delete-btn" class="modal-btn btn-danger" style="display: none;">حذف</button>
-                    <button type="button" id="cancel-btn" class="modal-btn btn-secondary">لغو</button>
-                    <button type="button" id="submit-btn" class="modal-btn btn-primary"></button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- مودال پروفایل کاربری -->
-    <div id="profile-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 500px;">
-             <form id="profile-form" class="modal-form" onsubmit="return false;">
-                <h2 class="modal-title">پروفایل کاربری</h2>
-                <div class="modal-body">
-                    <div class="profile-info full-width">
-                        <p>شما با ایمیل <strong id="user-email-display"></strong> وارد شده‌اید.</p>
                     </div>
                     
-                    <div class="input-group full-width">
-                        <label for="display-name-input">نام نمایشی</label>
-                        <input type="text" id="display-name-input" placeholder="نام خود را وارد کنید">
-                    </div>
-
-                    <div class="divider"></div>
-
-                    <div class="input-group full-width">
-                        <label>مدیریت رمز عبور</label>
-                        <button type="button" id="reset-password-btn" class="modal-btn btn-secondary">ارسال ایمیل بازنشانی رمز عبور</button>
-                    </div>
-                    <p id="profile-modal-message" class="full-width"></p>
+                    <p id="modal-message"></p>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" id="profile-cancel-btn" class="modal-btn btn-secondary">بستن</button>
-                    <button type="button" id="profile-submit-btn" class="modal-btn btn-success">ذخیره تغییرات</button>
+                    <button type="button" id="delete-btn" class="modal-btn" style="display: none;">حذف</button>
+                    <button type="button" id="cancel-btn" class="modal-btn">لغو</button>
+                    <button type="button" id="submit-btn" class="modal-btn">ساختن</button>
                 </div>
             </form>
         </div>
@@ -444,38 +520,28 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <script>
-        // --- Firebase Config ---
+        // --- پیکربندی Firebase ---
         const firebaseConfig = {
             apiKey: "AIzaSyAT8CDJoCOm8XVo62y-3CgS1Fqabdq2tjQ",
             authDomain: "serverjson-a2107.firebaseapp.com",
             projectId: "serverjson-a2107",
-            storageBucket: "serverjson-a2107.appspot.com",
+            storageBucket: "serverjson-a2107.firebasestorage.app",
             messagingSenderId: "1058313915119",
             appId: "1:1058313915119:web:4a967e4c8c401f1762a91a",
+            measurementId: "G-T3Y95SVYPM",
             databaseURL: "https://serverjson-a2107-default-rtdb.firebaseio.com"
         };
 
-        // --- Firebase Initialization ---
+        // --- مقداردهی اولیه سرویس‌های Firebase ---
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         const rtdb = firebase.database();
 
-        // --- Global Variables ---
-        let currentUser;
-        let userServers = [];
-
-        // --- DOM Elements ---
-        const loader = document.getElementById('loader');
+        // --- انتخاب عناصر DOM ---
         const serverList = document.getElementById('server-list');
-        const emptyState = document.getElementById('empty-state');
         const addServerBtn = document.getElementById('add-server-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const themeToggleBtn = document.getElementById('theme-toggle-btn');
-        const profileBtn = document.getElementById('profile-btn');
-
-        // Server Modal Elements
-        const serverModal = document.getElementById('server-modal');
+        const modal = document.getElementById('server-modal');
         const modalTitle = document.getElementById('modal-title');
         const serverForm = document.getElementById('server-form');
         const serverIdInput = document.getElementById('server-id-input');
@@ -491,30 +557,22 @@
         const htmlPreview = document.getElementById('html-preview');
         const serverIconInput = document.getElementById('server-icon-input');
         const serverColorInput = document.getElementById('server-color-input');
-        const serverVisibilitySelect = document.getElementById('server-visibility-select');
+        const serverVisibilityToggle = document.getElementById('server-visibility-toggle');
         const serverLinkWrapper = document.getElementById('server-link-wrapper');
         const serverLinkInput = document.getElementById('server-link-input');
-        const copyLinkBtn = document.getElementById('copy-link-btn');
-        const copyTooltip = document.getElementById('copy-tooltip');
         const modalMessage = document.getElementById('modal-message');
+        const noServersMessage = document.getElementById('no-servers-message');
+        const logoutBtn = document.getElementById('logout-btn');
         const cancelBtn = document.getElementById('cancel-btn');
         const submitBtn = document.getElementById('submit-btn');
         const deleteBtn = document.getElementById('delete-btn');
+        const themeToggleBtn = document.getElementById('theme-toggle-btn');
 
-        // Profile Modal Elements
-        const profileModal = document.getElementById('profile-modal');
-        const userEmailDisplay = document.getElementById('user-email-display');
-        const displayNameInput = document.getElementById('display-name-input');
-        const resetPasswordBtn = document.getElementById('reset-password-btn');
-        const profileModalMessage = document.getElementById('profile-modal-message');
-        const profileCancelBtn = document.getElementById('profile-cancel-btn');
-        const profileSubmitBtn = document.getElementById('profile-submit-btn');
 
-        // --- Helper Functions ---
-        const showLoader = () => loader.style.display = 'flex';
-        const hideLoader = () => loader.style.display = 'none';
+        let currentUser;
+        let userServers = []; // کش کردن اطلاعات سرورهای کاربر
 
-        // --- Theme Management ---
+        // --- مدیریت تم (روشن/تیره) ---
         function applyTheme(theme) {
             if (theme === 'dark') {
                 document.body.classList.add('dark-theme');
@@ -524,99 +582,99 @@
                 themeToggleBtn.textContent = '☀️';
             }
         }
+        
         async function saveThemePreference(theme) {
             if (!currentUser) return;
             const userDocRef = db.collection('users').doc(currentUser.uid);
             await userDocRef.set({ preferences: { theme: theme } }, { merge: true });
         }
-        
-        // --- Auth Management ---
+
+        themeToggleBtn.addEventListener('click', () => {
+            const newTheme = document.body.classList.contains('dark-theme') ? 'light' : 'dark';
+            applyTheme(newTheme);
+            saveThemePreference(newTheme);
+        });
+
+        // --- مدیریت وضعیت ورود کاربر ---
         auth.onAuthStateChanged(async user => {
             if (user) {
                 currentUser = user;
-                profileBtn.title = currentUser.displayName || currentUser.email;
                 await loadUserServersAndPreferences();
             } else {
-                window.location.href = './Login.html';
+                window.location.href = './Login.html'; // یا صفحه لاگین شما
             }
         });
-
-        // --- Data Loading ---
+        
+        // --- بارگذاری سرورها و تنظیمات کاربر ---
         async function loadUserServersAndPreferences() {
-            showLoader();
+            serverList.innerHTML = '';
             try {
                 const userDocRef = db.collection('users').doc(currentUser.uid);
                 const doc = await userDocRef.get();
                 if (doc.exists) {
                     const data = doc.data();
+                    // Load Theme
                     const savedTheme = data.preferences?.theme || 'light';
                     applyTheme(savedTheme);
+                    // Load Servers
                     userServers = data.servers || [];
-                    renderServerList();
+                    noServersMessage.style.display = userServers.length === 0 ? 'block' : 'none';
+                    userServers.forEach(displayServerCard);
                 } else {
-                    applyTheme('light');
-                    userServers = [];
-                    renderServerList();
+                     noServersMessage.style.display = 'block';
+                     userServers = [];
+                     applyTheme('light'); // Default theme
                 }
             } catch (error) {
                 console.error("Error loading user data:", error);
                 alert("خطا در بارگذاری اطلاعات.");
-            } finally {
-                hideLoader();
             }
         }
         
-        // --- UI Rendering ---
-        function renderServerList() {
-            serverList.innerHTML = '';
-            if (userServers.length === 0) {
-                emptyState.style.display = 'block';
-                serverList.style.display = 'none';
-            } else {
-                emptyState.style.display = 'none';
-                serverList.style.display = 'grid';
-                userServers.forEach(displayServerCard);
-            }
-        }
-
+        // --- ایجاد کارت برای هر سرور ---
         function displayServerCard(server) {
             const card = document.createElement('div');
             card.className = 'server-card';
             card.dataset.serverId = server.id;
-            card.style.borderTopColor = server.color || 'var(--primary-color)';
+            card.style.borderLeftColor = server.color || 'var(--primary-color)';
             
             const visibilityIcon = server.visibility === 'public' ? '🌐' : '🔒';
-            const serverType = server.type.toUpperCase();
+            const serverType = server.type === 'html' ? 'HTML' : 'JSON';
 
             card.innerHTML = `
                 <div class="server-card-content">
-                    <div class="server-card-header">
-                        <span class="server-icon">${server.icon || '🚀'}</span>
-                        <div class="server-details">
-                            <p class="server-name">${server.name}</p>
-                            <span class="server-id">ID: ${server.id}</span>
+                    <span class="server-icon">${server.icon || '🚀'}</span>
+                    <div class="server-details">
+                        <p class="server-name">${server.name}</p>
+                        <div class="server-meta">
+                           <span>نوع: ${serverType}</span>
+                           <span>${visibilityIcon} ${server.visibility === 'public' ? 'عمومی' : 'خصوصی'}</span>
                         </div>
                     </div>
                 </div>
-                <div class="server-card-footer">
-                    <div class="server-meta">
-                        <span>${serverType}</span>
-                        <span>${visibilityIcon} ${server.visibility === 'public' ? 'عمومی' : 'خصوصی'}</span>
-                    </div>
-                    <button class="edit-server-btn">ویرایش</button>
-                </div>
             `;
-            card.querySelector('.edit-server-btn').addEventListener('click', () => openModalForEdit(server));
+            card.addEventListener('click', () => openModalForEdit(server));
             serverList.appendChild(card);
         }
         
-        // --- Server Modal Management ---
+        // --- مدیریت نمایش ادیتورها بر اساس نوع سرور ---
         function toggleEditorView(type) {
-            jsonEditorContainer.style.display = (type === 'json') ? 'block' : 'none';
-            htmlEditorContainer.style.display = (type === 'html') ? 'block' : 'none';
-            htmlPreviewWrapper.style.display = (type === 'html') ? 'block' : 'none';
+            if (type === 'html') {
+                jsonEditorContainer.style.display = 'none';
+                htmlEditorContainer.style.display = 'block';
+                htmlPreviewWrapper.style.display = 'block';
+            } else { // json
+                jsonEditorContainer.style.display = 'block';
+                htmlEditorContainer.style.display = 'none';
+                htmlPreviewWrapper.style.display = 'none';
+            }
         }
+        serverTypeSelect.addEventListener('change', () => toggleEditorView(serverTypeSelect.value));
+        htmlContentInput.addEventListener('input', () => {
+             htmlPreview.srcdoc = htmlContentInput.value;
+        });
 
+        // --- مدیریت مودال (باز و بسته کردن) ---
         function openModalForCreate() {
             serverForm.reset();
             serverIdInput.value = '';
@@ -627,11 +685,12 @@
             serverTypeSelect.disabled = false;
             deleteBtn.style.display = 'none';
             serverLinkWrapper.style.display = 'none';
-            serverColorInput.value = '#4a90e2';
-            serverIconInput.value = '🚀';
-            serverVisibilitySelect.value = 'public';
+            serverColorInput.value = '#3498db'; // Reset color
+            serverIconInput.value = ''; // Reset icon
+            serverVisibilityToggle.checked = true;
+
             toggleEditorView('json');
-            serverModal.classList.add('visible');
+            modal.classList.add('visible');
         }
 
         function openModalForEdit(server) {
@@ -639,13 +698,18 @@
             serverIdInput.value = server.id;
             serverNameInput.value = server.name;
             serverTypeSelect.value = server.type || 'json';
-            serverTypeSelect.disabled = true;
+            serverTypeSelect.disabled = true; // Type cannot be changed after creation
+            
+            // Password is not shown or edited
             serverPasswordInput.required = false;
             passwordContainer.style.display = 'none';
+
+            // Personalization fields
             serverIconInput.value = server.icon || '🚀';
-            serverColorInput.value = server.color || '#4a90e2';
-            serverVisibilitySelect.value = server.visibility || 'public';
-            modalTitle.textContent = `ویرایش: ${server.name}`;
+            serverColorInput.value = server.color || '#3498db';
+            serverVisibilityToggle.checked = server.visibility === 'public';
+            
+            modalTitle.textContent = `ویرایش سرور: ${server.name}`;
             submitBtn.textContent = 'ذخیره تغییرات';
             
             if (server.type === 'html') {
@@ -656,79 +720,34 @@
             }
             toggleEditorView(server.type || 'json');
             
-            updateServerLink(server);
-            
-            deleteBtn.style.display = 'block';
-            serverModal.classList.add('visible');
-        }
-
-        function updateServerLink(server) {
             if (server.visibility === 'public') {
-                const realLink = server.type === 'html' 
-                    ? `https://abolfazl140122.github.io/serverJson/view.html?id=${server.id}`
-                    : `${firebaseConfig.databaseURL}/servers/${server.id}.json`;
-                
-                serverLinkInput.value = realLink;
-                serverLinkInput.onclick = () => window.open(realLink, '_blank');
-                serverLinkWrapper.style.display = 'flex';
+                if (server.type === 'html') {
+                    const realLink = `https://abolfazl140122.github.io/serverJson/view.html?id=${server.id}`;
+                    const displayLink = `Norix://server?id=${server.id}`;
+                    serverLinkInput.value = displayLink;
+                    serverLinkInput.onclick = () => window.open(realLink, '_blank');
+                } else {
+                    const realLink = `${firebaseConfig.databaseURL}/servers/${server.id}.json`;
+                    const displayLink = `Norix://json?id=${server.id}`;
+                    serverLinkInput.value = displayLink;
+                    serverLinkInput.onclick = () => window.open(realLink, '_blank');
+                }
+                serverLinkWrapper.style.display = 'block';
             } else {
                 serverLinkWrapper.style.display = 'none';
+                serverLinkInput.onclick = null; // Clear handler
             }
-        }
-
-        function closeModal(modalElement) {
-            modalElement.classList.remove('visible');
-            modalMessage.textContent = '';
-            profileModalMessage.textContent = '';
-        }
-
-        // --- Profile Modal Management ---
-        function openProfileModal() {
-            displayNameInput.value = currentUser.displayName || '';
-            userEmailDisplay.textContent = currentUser.email;
-            profileModalMessage.textContent = '';
-            profileModal.classList.add('visible');
-        }
-
-        async function handleProfileUpdate() {
-            const newDisplayName = displayNameInput.value.trim();
-            if (newDisplayName === currentUser.displayName) return;
-
-            showLoader();
-            try {
-                await currentUser.updateProfile({
-                    displayName: newDisplayName
-                });
-                profileModalMessage.textContent = 'نام نمایشی با موفقیت به‌روزرسانی شد.';
-                profileModalMessage.style.color = 'var(--success-color)';
-                profileBtn.title = newDisplayName;
-            } catch (error) {
-                console.error("Error updating profile:", error);
-                profileModalMessage.textContent = 'خطا در به‌روزرسانی پروفایل.';
-                profileModalMessage.style.color = 'var(--danger-color)';
-            } finally {
-                hideLoader();
-            }
-        }
-
-        async function handlePasswordReset() {
-            if (!confirm('آیا می‌خواهید ایمیل بازنشانی رمز عبور برای شما ارسال شود؟')) return;
             
-            showLoader();
-            try {
-                await auth.sendPasswordResetEmail(currentUser.email);
-                profileModalMessage.textContent = 'ایمیل بازنشانی با موفقیت ارسال شد. صندوق ورودی خود را بررسی کنید.';
-                profileModalMessage.style.color = 'var(--success-color)';
-            } catch (error) {
-                console.error("Error sending password reset email:", error);
-                profileModalMessage.textContent = 'خطا در ارسال ایمیل. لطفا دوباره تلاش کنید.';
-                profileModalMessage.style.color = 'var(--danger-color)';
-            } finally {
-                hideLoader();
-            }
+            deleteBtn.style.display = 'block';
+            modal.classList.add('visible');
         }
 
-        // --- Firebase Operations ---
+        function closeModal() {
+            modal.classList.remove('visible');
+            modalMessage.textContent = '';
+        }
+        
+        // --- تابع کمکی برای پاکسازی داده‌ها برای دیتابیس عمومی ---
         function sanitizeForPublicDb(server) {
             return {
                 type: server.type,
@@ -738,8 +757,9 @@
             };
         }
 
+        // --- مدیریت ارسال فرم (ساخت یا ویرایش) ---
         async function handleFormSubmit() {
-            showLoader();
+            submitBtn.disabled = true;
             modalMessage.textContent = '';
             const serverId = serverIdInput.value;
             try {
@@ -748,25 +768,27 @@
                 } else {
                     await createNewServer();
                 }
-                closeModal(serverModal);
-                await loadUserServersAndPreferences();
             } catch (error) {
                 console.error("Form submission error:", error);
                 modalMessage.textContent = error.message || 'یک خطای ناشناخته رخ داد.';
             } finally {
-                hideLoader();
+                submitBtn.disabled = false;
             }
         }
-
+        
+        // --- ساخت سرور جدید ---
         async function createNewServer() {
             const serverName = serverNameInput.value.trim();
             const serverPassword = serverPasswordInput.value.trim();
             if (!serverName || !serverPassword) throw new Error('نام و رمز عبور سرور الزامی است.');
 
             const serverType = serverTypeSelect.value;
-            const content = serverType === 'html' 
-                ? "<h1>سرور HTML جدید</h1>" 
-                : { message: "سرور JSON جدید" };
+            let content;
+            if (serverType === 'html') {
+                content = "<h1>سرور HTML جدید</h1><p>این محتوا را ویرایش کنید.</p>";
+            } else {
+                content = { message: "سرور JSON جدید با موفقیت ساخته شد." };
+            }
 
             const newServer = {
                 id: Date.now().toString(),
@@ -775,110 +797,115 @@
                 type: serverType,
                 icon: serverIconInput.value.trim() || '🚀',
                 color: serverColorInput.value,
-                visibility: serverVisibilitySelect.value,
+                visibility: serverVisibilityToggle.checked ? 'public' : 'private',
                 content: content
             };
             
             const userDocRef = db.collection('users').doc(currentUser.uid);
+            
+            // Start Firestore update
             const firestorePromise = userDocRef.set({
                 servers: firebase.firestore.FieldValue.arrayUnion(newServer)
             }, { merge: true });
 
-            let rtdbPromise = Promise.resolve();
+            // Handle Realtime DB based on visibility
+            let rtdbPromise;
             if (newServer.visibility === 'public') {
-                rtdbPromise = rtdb.ref('servers/' + newServer.id).set(sanitizeForPublicDb(newServer));
+                const publicData = sanitizeForPublicDb(newServer);
+                rtdbPromise = rtdb.ref('servers/' + newServer.id).set(publicData);
+            } else {
+                rtdbPromise = Promise.resolve(); // Do nothing for private server
             }
+
             await Promise.all([firestorePromise, rtdbPromise]);
+            
+            closeModal();
+            await loadUserServersAndPreferences();
         }
 
+        // --- به‌روزرسانی سرور موجود ---
         async function updateServer(serverId) {
             const serverIndex = userServers.findIndex(s => s.id === serverId);
-            if (serverIndex === -1) throw new Error('سرور یافت نشد.');
+            if (serverIndex === -1) throw new Error('سرور مورد نظر یافت نشد.');
 
             const serverToUpdate = { ...userServers[serverIndex] };
-            serverToUpdate.name = serverNameInput.value.trim() || 'بدون نام';
+
+            serverToUpdate.name = serverNameInput.value.trim();
+            if (!serverToUpdate.name) throw new Error('نام سرور نمی‌تواند خالی باشد.');
+            
             serverToUpdate.icon = serverIconInput.value.trim() || '🚀';
             serverToUpdate.color = serverColorInput.value;
-            serverToUpdate.visibility = serverVisibilitySelect.value;
-            
+            serverToUpdate.visibility = serverVisibilityToggle.checked ? 'public' : 'private';
+
+            // Update content based on type
             if (serverToUpdate.type === 'html') {
                 serverToUpdate.content = htmlContentInput.value;
             } else {
+                const jsonText = jsonContentInput.value.trim();
                 try {
-                    serverToUpdate.content = jsonContentInput.value.trim() ? JSON.parse(jsonContentInput.value) : {};
+                    serverToUpdate.content = jsonText ? JSON.parse(jsonText) : {};
                 } catch (e) {
-                    throw new Error('محتوای JSON معتبر نیست.');
+                    throw new Error('محتوای JSON وارد شده معتبر نیست.');
                 }
             }
             
+            // Update the server in the local array
             userServers[serverIndex] = serverToUpdate;
+
             const userDocRef = db.collection('users').doc(currentUser.uid);
+
+            // Start Firestore update
             const firestorePromise = userDocRef.update({ servers: userServers });
 
+            // Handle Realtime DB
             let rtdbPromise;
             if (serverToUpdate.visibility === 'public') {
-                rtdbPromise = rtdb.ref('servers/' + serverId).set(sanitizeForPublicDb(serverToUpdate));
+                const publicData = sanitizeForPublicDb(serverToUpdate);
+                rtdbPromise = rtdb.ref('servers/' + serverId).set(publicData);
             } else {
+                // If it's now private, remove it from public DB
                 rtdbPromise = rtdb.ref('servers/' + serverId).remove();
             }
+
             await Promise.all([firestorePromise, rtdbPromise]);
+            
+            closeModal();
+            await loadUserServersAndPreferences();
         }
 
+        // --- حذف سرور ---
         async function deleteServer() {
             const serverId = serverIdInput.value;
-            if (!confirm(`آیا از حذف سرور "${serverNameInput.value}" مطمئن هستید؟`)) return;
+            if (!confirm(`آیا از حذف سرور "${serverNameInput.value}" مطمئن هستید؟ این عمل غیرقابل بازگشت است.`)) return;
 
-            showLoader();
             const updatedServers = userServers.filter(server => server.id !== serverId);
             const userDocRef = db.collection('users').doc(currentUser.uid);
+
             try {
+                // Delete from both Firestore and Realtime Database
                 await Promise.all([
                     userDocRef.update({ servers: updatedServers }),
                     rtdb.ref('servers/' + serverId).remove()
                 ]);
-                closeModal(serverModal);
+
+                closeModal();
                 await loadUserServersAndPreferences();
             } catch (error) {
                 console.error("Error deleting server:", error);
                 alert('خطا در حذف سرور.');
-            } finally {
-                hideLoader();
             }
         }
         
-        // --- Event Listeners ---
-        themeToggleBtn.addEventListener('click', () => {
-            const newTheme = document.body.classList.contains('dark-theme') ? 'light' : 'dark';
-            applyTheme(newTheme);
-            saveThemePreference(newTheme);
-        });
-        
+        // --- رویدادها ---
+        addServerBtn.addEventListener('click', openModalForCreate);
+        cancelBtn.addEventListener('click', closeModal);
+        submitBtn.addEventListener('click', handleFormSubmit);
+        deleteBtn.addEventListener('click', deleteServer);
         logoutBtn.addEventListener('click', () => {
             if (confirm("آیا برای خروج از حساب کاربری خود مطمئن هستید؟")) {
                 auth.signOut();
             }
         });
-        
-        addServerBtn.addEventListener('click', openModalForCreate);
-        profileBtn.addEventListener('click', openProfileModal);
-
-        // Server Modal Listeners
-        cancelBtn.addEventListener('click', () => closeModal(serverModal));
-        submitBtn.addEventListener('click', handleFormSubmit);
-        deleteBtn.addEventListener('click', deleteServer);
-        serverTypeSelect.addEventListener('change', () => toggleEditorView(serverTypeSelect.value));
-        htmlContentInput.addEventListener('input', () => htmlPreview.srcdoc = htmlContentInput.value);
-        copyLinkBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(serverLinkInput.value).then(() => {
-                copyTooltip.classList.add('visible');
-                setTimeout(() => copyTooltip.classList.remove('visible'), 2000);
-            });
-        });
-
-        // Profile Modal Listeners
-        profileCancelBtn.addEventListener('click', () => closeModal(profileModal));
-        profileSubmitBtn.addEventListener('click', handleProfileUpdate);
-        resetPasswordBtn.addEventListener('click', handlePasswordReset);
 
     </script>
 </body>
