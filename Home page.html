@@ -722,14 +722,16 @@
             
             // START: MODIFIED CODE BLOCK
             if (server.visibility === 'public') {
-                // لینک برای هر دو نوع سرور به داده خام در Firebase RTDB اشاره می‌کند
-                const realLink = `${firebaseConfig.databaseURL}/servers/${server.id}.json`;
+                let realLink;
                 let displayLink;
 
                 if (server.type === 'html') {
-                    // متن نمایشی می‌تواند متفاوت باشد
+                    // برای سرور HTML، لینک بدون پسوند .json خواهد بود
+                    realLink = `${firebaseConfig.databaseURL}/servers/${server.id}`;
                     displayLink = `Norix://server?id=${server.id}`;
                 } else {
+                    // برای سرور JSON، از پسوند .json برای شفافیت استفاده می‌کنیم
+                    realLink = `${firebaseConfig.databaseURL}/servers/${server.id}.json`;
                     displayLink = `Norix://json?id=${server.id}`;
                 }
                 
