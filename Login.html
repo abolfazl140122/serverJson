@@ -141,7 +141,6 @@
 
         <div class="links">
             <a href="#" id="forgot-password">رمز عبور را فراموش کرده‌ام</a>
-            <!--  تغییر در این خط اعمال شد -->
             <a href="./Register.html">ساخت حساب جدید</a>
         </div>
     </div>
@@ -188,8 +187,14 @@
             try {
                 await auth.signInWithEmailAndPassword(email, password);
                 showMessage('ورود موفقیت‌آمیز بود! در حال انتقال...', 'success');
-                // در اینجا کاربر را به صفحه اصلی برنامه هدایت کنید
-                // window.location.href = 'dashboard.html';
+                
+                // --- START: MODIFIED CODE ---
+                // انتقال کاربر به صفحه اصلی بعد از یک تاخیر کوتاه
+                setTimeout(() => {
+                    window.location.href = './Home page.html';
+                }, 1000); // تاخیر 1000 میلی‌ثانیه‌ای (1 ثانیه)
+                // --- END: MODIFIED CODE ---
+
             } catch (error) {
                 if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
                     showMessage('ایمیل یا رمز عبور وارد شده صحیح نمی‌باشد.', 'error');
