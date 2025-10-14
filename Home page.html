@@ -720,23 +720,27 @@
             }
             toggleEditorView(server.type || 'json');
             
+            // START: MODIFIED CODE BLOCK
             if (server.visibility === 'public') {
+                // لینک برای هر دو نوع سرور به داده خام در Firebase RTDB اشاره می‌کند
+                const realLink = `${firebaseConfig.databaseURL}/servers/${server.id}.json`;
+                let displayLink;
+
                 if (server.type === 'html') {
-                    const realLink = `https://abolfazl140122.github.io/serverJson/view.html?id=${server.id}`;
-                    const displayLink = `Norix://server?id=${server.id}`;
-                    serverLinkInput.value = displayLink;
-                    serverLinkInput.onclick = () => window.open(realLink, '_blank');
+                    // متن نمایشی می‌تواند متفاوت باشد
+                    displayLink = `Norix://server?id=${server.id}`;
                 } else {
-                    const realLink = `${firebaseConfig.databaseURL}/servers/${server.id}.json`;
-                    const displayLink = `Norix://json?id=${server.id}`;
-                    serverLinkInput.value = displayLink;
-                    serverLinkInput.onclick = () => window.open(realLink, '_blank');
+                    displayLink = `Norix://json?id=${server.id}`;
                 }
+                
+                serverLinkInput.value = displayLink;
+                serverLinkInput.onclick = () => window.open(realLink, '_blank');
                 serverLinkWrapper.style.display = 'block';
             } else {
                 serverLinkWrapper.style.display = 'none';
                 serverLinkInput.onclick = null; // Clear handler
             }
+            // END: MODIFIED CODE BLOCK
             
             deleteBtn.style.display = 'block';
             modal.classList.add('visible');
