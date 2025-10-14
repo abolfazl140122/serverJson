@@ -721,7 +721,11 @@
             toggleEditorView(server.type || 'json');
             
             if (server.visibility === 'public') {
-                serverLinkInput.value = `${firebaseConfig.databaseURL}/servers/${server.id}.json`;
+                if (server.type === 'html') {
+                    serverLinkInput.value = `./view.html?id=${server.id}`;
+                } else {
+                    serverLinkInput.value = `${firebaseConfig.databaseURL}/servers/${server.id}.json`;
+                }
                 serverLinkWrapper.style.display = 'block';
             } else {
                  serverLinkWrapper.style.display = 'none';
