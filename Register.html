@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ثبت نام در Norix</title>
+    <title>ثبت نام در Norix (نسخه پروکسی)</title>
     <style>
         /* تنظیمات کلی مشابه صفحه لودینگ */
         body, html {
@@ -109,7 +109,7 @@
             color: #c0392b;
         }
         
-        /* [جدید] استایل لینک ورود */
+        /* استایل لینک ورود */
         .login-link {
             margin-top: 25px;
             font-size: 14px;
@@ -155,34 +155,24 @@
 
         <p id="message"></p>
 
-        <!-- [جدید] لینک به صفحه ورود -->
         <p class="login-link">
             حساب کاربری دارید؟ <a href="./Login.html">وارد شوید</a>
         </p>
-
     </div>
 
-    <!-- ایمپورت کردن SDK های Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
+    <!-- [تغییر] کتابخانه‌های Firebase SDK حذف شدند زیرا دیگر ارتباط مستقیمی با آن‌ها برقرار نمی‌شود. -->
+    
     <script>
-        // اطلاعات پیکربندی فایربیس شما
-        const firebaseConfig = {
-            apiKey: "AIzaSyAT8CDJoCOm8XVo62y-3CgS1Fqabdq2tjQ",
-            authDomain: "serverjson-a2107.firebaseapp.com",
-            projectId: "serverjson-a2107",
-            storageBucket: "serverjson-a2107.firebasestorage.app",
-            messagingSenderId: "1058313915119",
-            appId: "1:1058313915119:web:4a967e4c8c401f1762a91a",
-            measurementId: "G-T3Y55SVYPM"
-        };
+        // [تغییر] آدرس سرور واسط شما
+        const PROXY_URL = 'https://miko.freehost.io/firebase_proxyJSON.php';
+        
+        // [تغییر] آبجکت firebaseConfig دیگر در کلاینت استفاده نمی‌شود و می‌تواند حذف شود.
+        // const firebaseConfig = { ... };
 
-        // مقداردهی اولیه فایربیس
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        // [تغییر] مقداردهی اولیه فایربیس حذف شد.
+        // const app = firebase.initializeApp(firebaseConfig);
+        // const auth = firebase.auth();
+        // const db = firebase.firestore();
 
         // گرفتن عناصر DOM
         const registerForm = document.getElementById('register-form');
@@ -193,14 +183,14 @@
         const submitButton = document.getElementById('submit-button');
         const messageElement = document.getElementById('message');
 
-        // مدیریت فرآیند ثبت نام
+        // [تغییر] بازنویسی کامل منطق ثبت نام برای استفاده از سرور واسط
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault(); // جلوگیری از رفرش شدن صفحه
 
             // دریافت مقادیر
-            const username = usernameInput.value;
-            const displayName = displayNameInput.value;
-            const email = emailInput.value;
+            const username = usernameInput.value.trim();
+            const displayName = displayNameInput.value.trim();
+            const email = emailInput.value.trim();
             const password = passwordInput.value;
 
             // غیرفعال کردن دکمه برای جلوگیری از کلیک‌های مکرر
@@ -210,42 +200,51 @@
             messageElement.className = '';
 
             try {
-                // 1. ایجاد کاربر در Firebase Authentication
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                const user = userCredential.user;
-                console.log('User created in Auth:', user);
+                // 1. ساخت بدنه درخواست برای ارسال به سرور واسط
+                const requestBody = {
+                    action: 'register', // به سرور می‌گوید که عملیات ثبت نام است
+                    payload: {
+                        email: email,
+                        password: password,
+                        username: username,
+                        displayName: displayName
+                    }
+                };
 
-                // 2. ذخیره اطلاعات تکمیلی در کالکشن 'users' در Firestore
-                // نام داکیومنت را برابر با UID کاربر قرار می‌دهیم تا به راحتی پیدا شود
-                await db.collection('users').doc(user.uid).set({
-                    username: username,
-                    displayName: displayName,
-                    email: email,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp() // زمان ساخت اکانت
+                // 2. ارسال درخواست HTTP POST به سرور واسط شما
+                const response = await fetch(PROXY_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
                 });
+                
+                // 3. تجزیه پاسخ دریافت شده از سرور
+                const result = await response.json();
 
-                console.log('User data saved to Firestore.');
+                if (!response.ok) {
+                    // اگر سرور پاسخ خطا برگرداند (مثلاً status 400 یا 500)
+                    // پیام خطای برگشتی از سرور را نمایش می‌دهیم
+                    throw new Error(result.message || 'خطای سرور');
+                }
 
-                // نمایش پیام موفقیت و آماده‌سازی برای انتقال
+                // 4. نمایش پیام موفقیت و آماده‌سازی برای انتقال
                 messageElement.textContent = 'حساب کاربری با موفقیت ساخته شد! در حال انتقال به صفحه اصلی...';
                 messageElement.classList.add('message-success');
 
-                // هدایت کاربر به صفحه اصلی پس از یک تاخیر کوتاه
+                // 5. هدایت کاربر به صفحه اصلی پس از یک تاخیر کوتاه
                 setTimeout(() => {
                     window.location.href = './Home page.html';
-                }, 1500); // 1.5 ثانیه تاخیر
+                }, 1500);
 
             } catch (error) {
-                // مدیریت خطاها
-                console.error('Registration Error:', error.message);
+                // مدیریت خطاها (شامل خطاهای شبکه و خطاهای منطقی از سرور)
+                console.error('Registration Error via Proxy:', error.message);
                 messageElement.classList.add('message-error');
-                if (error.code === 'auth/email-already-in-use') {
-                    messageElement.textContent = 'این ایمیل قبلاً استفاده شده است.';
-                } else if (error.code === 'auth/weak-password') {
-                    messageElement.textContent = 'رمز عبور باید حداقل ۶ کاراکتر باشد.';
-                } else {
-                    messageElement.textContent = 'خطایی رخ داد. لطفاً دوباره تلاش کنید.';
-                }
+                
+                // نمایش پیام خطای دریافتی از سرور یا یک پیام عمومی
+                messageElement.textContent = error.message || 'خطایی رخ داد. لطفاً دوباره تلاش کنید.';
 
                 // فعال کردن مجدد دکمه
                 submitButton.disabled = false;
