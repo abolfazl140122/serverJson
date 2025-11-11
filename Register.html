@@ -101,7 +101,6 @@
             margin-top: 20px;
             font-weight: 500;
             min-height: 20px; /* برای جلوگیری از پرش صفحه */
-            line-height: 1.5;
         }
         .message-success {
             color: #27ae60;
@@ -162,14 +161,10 @@
 
     </div>
 
-    <!-- 
-        دیگر نیازی به SDK های Firebase در اینجا نیست.
-        ارتباط از طریق سرور واسط انجام می‌شود.
-    -->
     <script>
-        // --- تنظیمات ارتباط با سرور واسط (Proxy) ---
+        // --- تنظیمات ارتباط با سرور واسطه (Proxy) ---
         const PROXY_URL = 'https://miko.freehost.io/firebase_proxyJSON.php';
-        const PROXY_KEY = 'MyUltraSecretKey123!'; // کلید امنیتی که در فایل PHP تعریف کردید
+        const PROXY_KEY = 'MyUltraSecretKey123!';
 
         // گرفتن عناصر DOM
         const registerForm = document.getElementById('register-form');
@@ -180,91 +175,87 @@
         const submitButton = document.getElementById('submit-button');
         const messageElement = document.getElementById('message');
 
-        // مدیریت فرآیند ثبت نام از طریق سرور واسط
+        // مدیریت فرآیند ثبت نام از طریق سرور واسطه
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault(); // جلوگیری از رفرش شدن صفحه
 
-            // دریافت مقادیر از فرم
-            const username = usernameInput.value.trim();
-            const displayName = displayNameInput.value.trim();
-            const email = emailInput.value.trim();
+            // دریافت مقادیر
+            const username = usernameInput.value;
+            const displayName = displayNameInput.value;
+            const email = emailInput.value;
             const password = passwordInput.value;
 
-            // غیرفعال کردن دکمه و نمایش پیام در حال ارسال
+            // غیرفعال کردن دکمه برای جلوگیری از کلیک‌های مکرر
             submitButton.disabled = true;
             submitButton.innerText = 'در حال ارسال...';
             messageElement.textContent = '';
             messageElement.className = '';
 
-            // ساختار داده برای ارسال به سرور واسط
-            const requestData = {
-                action: 'register',
-                payload: {
-                    username: username,
-                    displayName: displayName,
-                    email: email,
-                    password: password
-                }
-            };
-
             try {
-                // ارسال درخواست به سرور واسط (Proxy)
+                // ساخت بدنه درخواست برای ارسال به پراکسی
+                const requestBody = {
+                    action: 'register',
+                    payload: {
+                        username: username,
+                        displayName: displayName,
+                        email: email,
+                        password: password
+                    }
+                };
+
+                // ارسال درخواست به سرور پراکسی
                 const response = await fetch(PROXY_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-Proxy-Key': PROXY_KEY // ارسال کلید امنیتی در هدر
+                        'X-Proxy-Key': PROXY_KEY
                     },
-                    body: JSON.stringify(requestData)
+                    body: JSON.stringify(requestBody)
                 });
+                
+                const responseData = await response.json();
 
-                // دریافت پاسخ از سرور
-                const result = await response.json();
-
-                // اگر پاسخ موفقیت آمیز نبود (مثلا خطای 4xx یا 5xx)
+                // بررسی موفقیت‌آمیز بودن پاسخ از سرور
                 if (!response.ok) {
-                    // پرتاب خطا با جزئیاتی که از سرور آمده است
-                    throw result;
+                    // اگر سرور پاسخ خطا داد، آن را به عنوان یک خطا پرتاب می‌کنیم
+                    throw responseData;
                 }
 
-                // ثبت نام موفقیت آمیز بود
-                console.log('User registered successfully via proxy:', result);
+                console.log('User registered successfully via proxy:', responseData);
 
-                // نمایش پیام موفقیت
+                // نمایش پیام موفقیت و آماده‌سازی برای انتقال
                 messageElement.textContent = 'حساب کاربری با موفقیت ساخته شد! در حال انتقال به صفحه اصلی...';
                 messageElement.classList.add('message-success');
 
-                // هدایت کاربر به صفحه اصلی پس از یک تاخیر کوتاه
+                // توجه: در این حالت، کاربر مستقیماً در کلاینت لاگین نمی‌شود.
+                // باید او را به صفحه لاگین هدایت کنیم تا با اطلاعات جدیدش وارد شود.
                 setTimeout(() => {
-                    // توجه: در اینجا فرض شده که پس از ثبت نام باید به صفحه لاگین برود
-                    // تا کاربر با اطلاعات جدید خود وارد شود.
-                    // اگر می‌خواهید مستقیم به داشبورد برود، باید لاگین خودکار پیاده‌سازی شود.
-                    // فعلاً به صفحه لاگین هدایت می‌کنیم که ساده‌تر است.
-                    window.location.href = './Login.html';
+                    window.location.href = './Login.html'; 
                 }, 2000); // 2 ثانیه تاخیر
 
             } catch (error) {
                 // مدیریت خطاها
                 console.error('Registration Error via Proxy:', error);
                 messageElement.classList.add('message-error');
-
-                // بررسی جزئیات خطا که از سرور واسط آمده است
-                if (error.details && error.details.error) {
-                    const errorCode = error.details.error.message;
-                    if (errorCode === 'EMAIL_EXISTS') {
-                        messageElement.textContent = 'این ایمیل قبلاً استفاده شده است.';
-                    } else if (errorCode === 'WEAK_PASSWORD : Password should be at least 6 characters') {
-                        messageElement.textContent = 'رمز عبور باید حداقل ۶ کاراکتر باشد.';
+                
+                let errorMessage = 'خطایی رخ داد. لطفاً دوباره تلاش کنید.';
+                // بررسی جزئیات خطای بازگشتی از فایربیس (که توسط پراکسی ارسال شده)
+                if (error && error.details && error.details.error) {
+                    const firebaseError = error.details.error;
+                    if (firebaseError.message === 'EMAIL_EXISTS') {
+                        errorMessage = 'این ایمیل قبلاً استفاده شده است.';
+                    } else if (firebaseError.message === 'WEAK_PASSWORD : Password should be at least 6 characters') {
+                        errorMessage = 'رمز عبور باید حداقل ۶ کاراکتر باشد.';
+                    } else if (firebaseError.message === 'INVALID_EMAIL') {
+                        errorMessage = 'فرمت ایمیل وارد شده صحیح نمی‌باشد.';
                     } else {
-                        messageElement.textContent = `خطایی از سمت سرور: ${errorCode}`;
+                        errorMessage = firebaseError.message; // نمایش خطای اصلی فایربیس
                     }
-                } else if (error.error) {
-                    // برای خطاهای عمومی‌تری که خود پراکسی تولید می‌کند
-                     messageElement.textContent = error.error;
+                } else if (error && error.error) {
+                    errorMessage = error.error; // خطاهای عمومی پراکسی
                 }
-                else {
-                    messageElement.textContent = 'یک خطای ناشناخته رخ داد. لطفاً اتصال اینترنت خود را بررسی کرده و دوباره تلاش کنید.';
-                }
+                
+                messageElement.textContent = errorMessage;
 
                 // فعال کردن مجدد دکمه
                 submitButton.disabled = false;
