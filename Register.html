@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ثبت نام در Norix</title>
     <style>
-        /* تنظیمات کلی مشابه صفحه لودینگ */
         body, html {
             margin: 0;
             padding: 0;
@@ -17,8 +16,6 @@
             justify-content: center;
             align-items: center;
         }
-
-        /* کانتینر اصلی فرم */
         .register-container {
             background-color: #fff;
             padding: 40px 50px;
@@ -29,34 +26,27 @@
             box-sizing: border-box;
             text-align: center;
         }
-
-        /* استایل عنوان برنامه */
         .title {
             font-size: 48px;
             font-weight: bold;
             color: #333;
             margin-bottom: 10px;
         }
-
         .subtitle {
             font-size: 18px;
             color: #555;
             margin-bottom: 30px;
         }
-
-        /* استایل فیلدهای ورودی */
         .input-group {
             margin-bottom: 20px;
             text-align: right;
         }
-
         .input-group label {
             display: block;
             margin-bottom: 8px;
             font-weight: 500;
             color: #444;
         }
-
         .input-group input {
             width: 100%;
             padding: 12px;
@@ -66,14 +56,11 @@
             font-size: 16px;
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
-
         .input-group input:focus {
             outline: none;
             border-color: #3498db;
             box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
         }
-
-        /* استایل دکمه ثبت نام */
         .submit-btn {
             width: 100%;
             padding: 14px;
@@ -86,21 +73,18 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
-
         .submit-btn:hover {
             background-color: #2980b9;
         }
-        
         .submit-btn:disabled {
             background-color: #a9a9a9;
             cursor: not-allowed;
         }
-
-        /* استایل پیام‌های خطا و موفقیت */
         #message {
             margin-top: 20px;
             font-weight: 500;
-            min-height: 20px; /* برای جلوگیری از پرش صفحه */
+            min-height: 20px;
+            word-wrap: break-word;
         }
         .message-success {
             color: #27ae60;
@@ -108,20 +92,16 @@
         .message-error {
             color: #c0392b;
         }
-        
-        /* استایل لینک ورود */
         .login-link {
             margin-top: 25px;
             font-size: 14px;
             color: #555;
         }
-
         .login-link a {
             color: #3498db;
             font-weight: 500;
             text-decoration: none;
         }
-
         .login-link a:hover {
             text-decoration: underline;
         }
@@ -133,7 +113,7 @@
         <h1 class="title">Norix</h1>
         <p class="subtitle">ثبت نام در Norix</p>
         
-        <form id="register-form">
+        <form id="register-form" novalidate>
             <div class="input-group">
                 <label for="username">نام کاربری</label>
                 <input type="text" id="username" placeholder="یک نام کاربری انتخاب کنید" required>
@@ -162,11 +142,9 @@
     </div>
 
     <script>
-        // --- تنظیمات ارتباط با سرور واسطه (Proxy) ---
-        const PROXY_URL = 'https://miko.freehost.io/firebase_proxyJSON.php';
+        const PROXY_URL = '/firebase_proxyJSON.php';
         const PROXY_KEY = 'MyUltraSecretKey123!';
 
-        // گرفتن عناصر DOM
         const registerForm = document.getElementById('register-form');
         const usernameInput = document.getElementById('username');
         const displayNameInput = document.getElementById('displayName');
@@ -175,24 +153,26 @@
         const submitButton = document.getElementById('submit-button');
         const messageElement = document.getElementById('message');
 
-        // مدیریت فرآیند ثبت نام از طریق سرور واسطه
         registerForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); // جلوگیری از رفرش شدن صفحه
+            e.preventDefault();
 
-            // دریافت مقادیر
-            const username = usernameInput.value;
-            const displayName = displayNameInput.value;
-            const email = emailInput.value;
+            const username = usernameInput.value.trim();
+            const displayName = displayNameInput.value.trim();
+            const email = emailInput.value.trim();
             const password = passwordInput.value;
 
-            // غیرفعال کردن دکمه برای جلوگیری از کلیک‌های مکرر
+            if (!username || !displayName || !email || !password) {
+                messageElement.textContent = 'لطفاً تمام فیلدها را پر کنید.';
+                messageElement.className = 'message-error';
+                return;
+            }
+
             submitButton.disabled = true;
             submitButton.innerText = 'در حال ارسال...';
             messageElement.textContent = '';
             messageElement.className = '';
 
             try {
-                // ساخت بدنه درخواست برای ارسال به پراکسی
                 const requestBody = {
                     action: 'register',
                     payload: {
@@ -203,7 +183,6 @@
                     }
                 };
 
-                // ارسال درخواست به سرور پراکسی
                 const response = await fetch(PROXY_URL, {
                     method: 'POST',
                     headers: {
@@ -212,52 +191,49 @@
                     },
                     body: JSON.stringify(requestBody)
                 });
+
+                if (response.status === 404) {
+                     throw new Error('Server script not found (404). Please check the URL.');
+                }
                 
                 const responseData = await response.json();
 
-                // بررسی موفقیت‌آمیز بودن پاسخ از سرور
                 if (!response.ok) {
-                    // اگر سرور پاسخ خطا داد، آن را به عنوان یک خطا پرتاب می‌کنیم
                     throw responseData;
                 }
 
-                console.log('User registered successfully via proxy:', responseData);
+                messageElement.textContent = 'حساب کاربری با موفقیت ساخته شد! در حال انتقال به صفحه ورود...';
+                messageElement.className = 'message-success';
 
-                // نمایش پیام موفقیت و آماده‌سازی برای انتقال
-                messageElement.textContent = 'حساب کاربری با موفقیت ساخته شد! در حال انتقال به صفحه اصلی...';
-                messageElement.classList.add('message-success');
-
-                // توجه: در این حالت، کاربر مستقیماً در کلاینت لاگین نمی‌شود.
-                // باید او را به صفحه لاگین هدایت کنیم تا با اطلاعات جدیدش وارد شود.
                 setTimeout(() => {
-                    window.location.href = './Login.html'; 
-                }, 2000); // 2 ثانیه تاخیر
+                    window.location.href = './Login.html';
+                }, 2000);
 
             } catch (error) {
-                // مدیریت خطاها
                 console.error('Registration Error via Proxy:', error);
-                messageElement.classList.add('message-error');
+                messageElement.className = 'message-error';
                 
-                let errorMessage = 'خطایی رخ داد. لطفاً دوباره تلاش کنید.';
-                // بررسی جزئیات خطای بازگشتی از فایربیس (که توسط پراکسی ارسال شده)
-                if (error && error.details && error.details.error) {
+                let errorMessage = 'یک خطای ناشناخته رخ داد. لطفاً دوباره تلاش کنید.';
+
+                if (error instanceof Error) {
+                    errorMessage = error.message;
+                } else if (error && error.details && error.details.error) {
                     const firebaseError = error.details.error;
                     if (firebaseError.message === 'EMAIL_EXISTS') {
-                        errorMessage = 'این ایمیل قبلاً استفاده شده است.';
-                    } else if (firebaseError.message === 'WEAK_PASSWORD : Password should be at least 6 characters') {
+                        errorMessage = 'این ایمیل قبلاً در سیستم ثبت شده است.';
+                    } else if (firebaseError.message.includes('WEAK_PASSWORD')) {
                         errorMessage = 'رمز عبور باید حداقل ۶ کاراکتر باشد.';
                     } else if (firebaseError.message === 'INVALID_EMAIL') {
-                        errorMessage = 'فرمت ایمیل وارد شده صحیح نمی‌باشد.';
+                        errorMessage = 'فرمت ایمیل وارد شده صحیح نیست.';
                     } else {
-                        errorMessage = firebaseError.message; // نمایش خطای اصلی فایربیس
+                        errorMessage = `خطای فایربیس: ${firebaseError.message}`;
                     }
                 } else if (error && error.error) {
-                    errorMessage = error.error; // خطاهای عمومی پراکسی
+                    errorMessage = `خطای سرور: ${error.error}`;
                 }
                 
                 messageElement.textContent = errorMessage;
 
-                // فعال کردن مجدد دکمه
                 submitButton.disabled = false;
                 submitButton.innerText = 'ساخت حساب کاربری';
             }
